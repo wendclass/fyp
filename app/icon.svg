@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 180 180" width="180" height="180">
+  <rect width="180" height="180" rx="40" fill="#E8368F"/>
+  <g fill="none" stroke="#FFFFFF" stroke-width="10" stroke-linecap="round" stroke-linejoin="round">
+    <!-- Box base -->
+    <rect x="35" y="80" width="110" height="65" rx="12" fill="#FFFFFF" fill-opacity="0.15" stroke="#FFFFFF"/>
+    <!-- Lid -->
+    <rect x="25" y="55" width="130" height="25" rx="8" fill="#FFFFFF" fill-opacity="0.25" stroke="#FFFFFF"/>
+    <!-- Vertical ribbon -->
+    <line x1="90" y1="55" x2="90" y2="145"/>
+    <!-- Ribbon Bow -->
+    <path d="M90 55 C70 30, 45 40, 60 55 C75 70, 90 55, 90 55 Z" fill="#FFFFFF" fill-opacity="0.3"/>
+    <path d="M90 55 C110 30, 135 40, 120 55 C105 70, 90 55, 90 55 Z" fill="#FFFFFF" fill-opacity="0.3"/>
+  </g>
+  <!-- Sparkles -->
+  <circle cx="140" cy="35" r="4" fill="#FFE500"/>
+  <circle cx="40" cy="40" r="3" fill="#FFFFFF"/>
+</svg>
