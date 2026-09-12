@@ -8,9 +8,9 @@ CREATE TABLE IF NOT EXISTS public.questionnaires (
     owner_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
     recipient_name TEXT NOT NULL,
     budget TEXT NOT NULL,
-    occasion TEXT NOT NULL DEFAULT ''Anniversaire'',
+    occasion TEXT NOT NULL DEFAULT 'Anniversaire',
     title TEXT NOT NULL,
-    status TEXT NOT NULL DEFAULT ''draft'' CHECK (status IN (''draft'', ''sent'', ''answered'', ''completed'')),
+    status TEXT NOT NULL DEFAULT 'draft' CHECK (status IN ('draft', 'sent', 'answered', 'completed')),
     share_token TEXT NOT NULL UNIQUE,
     selected_gift_id UUID,
     personal_note TEXT,
@@ -23,7 +23,7 @@ CREATE TABLE IF NOT EXISTS public.questions (
     questionnaire_id UUID REFERENCES public.questionnaires(id) ON DELETE CASCADE,
     position INT NOT NULL,
     prompt TEXT NOT NULL,
-    options TEXT[] NOT NULL DEFAULT ''{}'',
+    options TEXT[] NOT NULL DEFAULT '{}',
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
@@ -32,8 +32,8 @@ CREATE TABLE IF NOT EXISTS public.answers (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     questionnaire_id UUID NOT NULL REFERENCES public.questionnaires(id) ON DELETE CASCADE,
     q1_pleasure TEXT NOT NULL,
-    q2_likes TEXT[] NOT NULL DEFAULT ''{}'',
-    q3_dislikes TEXT[] NOT NULL DEFAULT ''{}'',
+    q2_likes TEXT[] NOT NULL DEFAULT '{}',
+    q3_dislikes TEXT[] NOT NULL DEFAULT '{}',
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
@@ -43,8 +43,8 @@ CREATE TABLE IF NOT EXISTS public.gifts (
     name TEXT NOT NULL,
     budget_min NUMERIC NOT NULL,
     budget_max NUMERIC NOT NULL,
-    categories TEXT[] NOT NULL DEFAULT ''{}'',
-    excluded_categories TEXT[] NOT NULL DEFAULT ''{}'',
+    categories TEXT[] NOT NULL DEFAULT '{}',
+    excluded_categories TEXT[] NOT NULL DEFAULT '{}',
     gift_type TEXT NOT NULL,
     description TEXT NOT NULL,
     image_url TEXT,
@@ -127,10 +127,10 @@ BEGIN
     END IF;
 
     RETURN jsonb_build_object(
-        ''id'', v_record.id,
-        ''recipient_name'', v_record.recipient_name,
-        ''status'', v_record.status,
-        ''occasion'', v_record.occasion
+        'id', v_record.id,
+        'recipient_name', v_record.recipient_name,
+        'status', v_record.status,
+        'occasion', v_record.occasion
     );
 END;
 $$;
@@ -151,28 +151,28 @@ DECLARE
     v_q_id UUID;
     v_status TEXT;
 BEGIN
-    -- Vérification du token et de l''existence
+    -- Vérification du token et de l'existence
     SELECT id, status INTO v_q_id, v_status
     FROM public.questionnaires
     WHERE share_token = p_token;
 
     IF NOT FOUND THEN
-        RETURN jsonb_build_object(''success'', false, ''error'', ''Questionnaire introuvable'');
+        RETURN jsonb_build_object('success', false, 'error', 'Questionnaire introuvable');
     END IF;
 
     -- Insertion ou mise à jour des réponses
     INSERT INTO public.answers (questionnaire_id, q1_pleasure, q2_likes, q3_dislikes)
     VALUES (v_q_id, p_q1, p_q2, p_q3);
 
-    -- Mise à jour du statut du questionnaire en ''answered''
+    -- Mise à jour du statut du questionnaire en 'answered'
     UPDATE public.questionnaires
-    SET status = ''answered''
+    SET status = 'answered'
     WHERE id = v_q_id;
 
-    RETURN jsonb_build_object(''success'', true, ''message'', ''Réponses enregistrées avec succès'');
+    RETURN jsonb_build_object('success', true, 'message', 'Réponses enregistrées avec succès');
 END;
 $$;
 
--- Attribution des droits d''exécution aux rôles anon et authenticated
+-- Attribution des droits d'exécution aux rôles anon et authenticated
 GRANT EXECUTE ON FUNCTION public.get_questionnaire_by_token(TEXT) TO anon, authenticated;
 GRANT EXECUTE ON FUNCTION public.submit_questionnaire(TEXT, TEXT, TEXT[], TEXT[]) TO anon, authenticated;
