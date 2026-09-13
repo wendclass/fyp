@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { ScoredGift, Questionnaire } from "@/lib/types";
 import { Button } from "./ui/button";
 import { Badge } from "./ui/badge";
-import { Gift as GiftIcon, CheckCircle2, Heart, Sparkles, Send, Tag, Info, Check } from "lucide-react";
+import { Gift as GiftIcon, CheckCircle2, Heart, Sparkles, Send, Check } from "lucide-react";
 import confetti from "canvas-confetti";
 import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
@@ -107,7 +107,7 @@ export function RecommendationsReveal({
           className="text-charcoal-light text-base mt-2"
         >
           Croisement précis des goûts exprimés et de votre budget ({questionnaire.budget} FCFA).
-          Sélectionnez activement l''idée qui vous inspire le plus.
+          Sélectionnez activement l’idée qui vous inspire le plus.
         </motion.p>
       </div>
 
@@ -210,10 +210,10 @@ export function RecommendationsReveal({
                 {isSelected ? (
                   <>
                     <Check className="w-4 h-4" />
-                    <span>C''est mon choix !</span>
+                    <span>C’est mon choix !</span>
                   </>
                 ) : (
-                  <span>C''est celui-ci</span>
+                  <span>C’est celui-ci</span>
                 )}
               </Button>
             </motion.div>
@@ -252,7 +252,7 @@ export function RecommendationsReveal({
                 <textarea
                   value={personalNote}
                   onChange={(e) => setPersonalNote(e.target.value)}
-                  placeholder={`Ex: "Joyeux anniversaire ${questionnaire.recipient_name} ! J'espère que cette petite attention te fera plaisir ❤️"`}
+                  placeholder={`Ex : "Joyeux anniversaire ${questionnaire.recipient_name} ! J’espère que cette petite attention te fera plaisir ❤️"`}
                   rows={3}
                   className="w-full rounded-2xl border border-blush-200 bg-blush-50/50 p-4 text-sm text-charcoal focus:outline-none focus:border-fuchsia-brand focus:ring-2 focus:ring-fuchsia-brand/20 transition-all placeholder:text-charcoal-muted resize-none"
                 />

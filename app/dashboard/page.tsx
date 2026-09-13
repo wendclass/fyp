@@ -9,14 +9,12 @@ import {
   Gift,
   PlusCircle,
   Clock,
-  CheckCircle2,
   Sparkles,
   ArrowRight,
   Heart,
-  Share2,
 } from "lucide-react";
 
-export const revalidate = 0; // Dynamic data
+export const revalidate = 0;
 
 export default async function DashboardPage() {
   const supabase = await createClient();
@@ -29,7 +27,7 @@ export default async function DashboardPage() {
     redirect("/auth/login?redirect=/dashboard");
   }
 
-  const { data: questionnaires, error } = await supabase
+  const { data: questionnaires } = await supabase
     .from("questionnaires")
     .select("*")
     .eq("owner_id", user.id)
@@ -114,7 +112,7 @@ export default async function DashboardPage() {
             <Gift className="w-8 h-8" />
           </div>
           <h2 className="font-display font-bold text-2xl text-charcoal mb-2">
-            Aucune surprise pour l''instant
+            Aucune surprise pour l’instant
           </h2>
           <p className="text-charcoal-light text-sm max-w-md mx-auto mb-6">
             Créez votre premier questionnaire en 30 secondes pour surprendre un proche sans gâcher la surprise !

@@ -9,12 +9,10 @@ import {
   EyeOff,
   Sparkles,
   ArrowRight,
-  ShieldCheck,
   HeartHandshake,
   Lock,
   Zap,
   CheckCircle,
-  HelpCircle,
 } from "lucide-react";
 
 export default function HomePage() {
@@ -33,14 +31,14 @@ export default function HomePage() {
         >
           <span className="w-2 h-2 rounded-full bg-fuchsia-brand animate-ping" />
           <Sparkles className="w-4 h-4 text-fuchsia-brand" />
-          <span>Le mécanisme d''aveuglement pour réussir tous vos cadeaux</span>
+          <span>Le mécanisme d’aveuglement pour réussir tous vos cadeaux</span>
         </motion.div>
 
         <motion.h1
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
-          className="font-display font-black text-4xl sm:text-6xl md:text-7xl text-charcoal tracking-tight leading-[1.15] mb-6 max-w-4xl mx-auto"
+          className="font-display font-black text-4xl sm:text-6xl md:text-7xl text-charcoal tracking-tight leading-[1.2] mb-6 max-w-4xl mx-auto"
         >
           Le cadeau parfait pour <br />
           <HeroAnimatedText />
@@ -93,7 +91,7 @@ export default function HomePage() {
         </motion.div>
       </section>
 
-      {/* SECTION: CONCEPT DE L''AVEUGLEMENT */}
+      {/* SECTION: CONCEPT DE L’AVEUGLEMENT */}
       <section id="concept" className="w-full py-20 px-4 sm:px-6 bg-white border-y border-blush-200/80">
         <div className="max-w-6xl mx-auto">
           <motion.div
@@ -107,10 +105,10 @@ export default function HomePage() {
               Le secret du produit
             </span>
             <h2 className="font-display font-black text-3xl sm:text-4xl md:text-5xl text-charcoal tracking-tight">
-              Le mécanisme d''aveuglement 🙈
+              Le mécanisme d’aveuglement 🙈
             </h2>
             <p className="text-base sm:text-lg text-charcoal-light mt-3 leading-relaxed">
-              Demander à quelqu''un ce qu''il veut ruine la surprise. Deviner au hasard risque de décevoir. Fyp résout ce dilemme avec une étanchéité totale.
+              Demander à quelqu’un ce qu’il veut ruine la surprise. Deviner au hasard risque de décevoir. Fyp résout ce dilemme avec une étanchéité totale.
             </p>
           </motion.div>
 
@@ -132,7 +130,7 @@ export default function HomePage() {
               <ul className="space-y-3.5 text-sm text-charcoal-light">
                 <li className="flex items-start gap-2.5">
                   <CheckCircle className="w-5 h-5 text-fuchsia-brand shrink-0 mt-0.5" />
-                  <span>Vous fixez l''occasion et le <strong>budget précis</strong> (ex : 25 000 FCFA).</span>
+                  <span>Vous fixez l’occasion et le <strong>budget précis</strong> (ex : 25 000 FCFA).</span>
                 </li>
                 <li className="flex items-start gap-2.5">
                   <CheckCircle className="w-5 h-5 text-fuchsia-brand shrink-0 mt-0.5" />
@@ -170,7 +168,7 @@ export default function HomePage() {
                 </li>
                 <li className="flex items-start gap-2.5">
                   <CheckCircle className="w-5 h-5 text-charcoal shrink-0 mt-0.5" />
-                  <span>Répond à <strong>3 questions visuelles simples</strong> en moins d''une minute.</span>
+                  <span>Répond à <strong>3 questions visuelles simples</strong> en moins d’une minute.</span>
                 </li>
                 <li className="flex items-start gap-2.5">
                   <Lock className="w-5 h-5 text-rose-500 shrink-0 mt-0.5" />
@@ -178,7 +176,7 @@ export default function HomePage() {
                 </li>
                 <li className="flex items-start gap-2.5">
                   <Lock className="w-5 h-5 text-rose-500 shrink-0 mt-0.5" />
-                  <span><strong>Ne voit JAMAIS les cadeaux recommandés</strong> pour préserver l''effet de surprise.</span>
+                  <span><strong>Ne voit JAMAIS les cadeaux recommandés</strong> pour préserver l’effet de surprise.</span>
                 </li>
               </ul>
             </motion.div>
@@ -202,7 +200,7 @@ export default function HomePage() {
             Comment ça marche ?
           </h2>
           <p className="text-base text-charcoal-light mt-2">
-            Créer → Envoyer → Consulter → Choisir
+            Créer, Envoyer, Consulter, Choisir
           </p>
         </motion.div>
 
@@ -211,7 +209,7 @@ export default function HomePage() {
             {
               step: "01",
               title: "Créez la surprise",
-              desc: "Choisissez l''occasion (Anniversaire, Couple, Réussite...) et définissez votre budget en FCFA.",
+              desc: "Choisissez l’occasion (Anniversaire, Couple, Réussite...) et définissez votre budget en FCFA.",
               icon: "🎁",
             },
             {
@@ -223,12 +221,12 @@ export default function HomePage() {
             {
               step: "03",
               title: "Votre proche répond",
-              desc: "3 questions ultra rapides pour cerner ce qu''il aime, préfère utiliser et souhaite éviter.",
+              desc: "3 questions ultra rapides pour cerner ce qu’il aime, préfère utiliser et souhaite éviter.",
               icon: "💬",
             },
             {
               step: "04",
-              title: "Révélation & Choix",
+              title: "Révélation et Choix",
               desc: "Découvrez ses réponses et les 3 idées de cadeaux parfaitement ajustées, puis validez votre choix.",
               icon: "✨",
             },

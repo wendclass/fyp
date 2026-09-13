@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { Copy, Check, Share2, MessageCircle, ExternalLink, Sparkles } from "lucide-react";
 import { Button } from "./ui/button";
-import { motion, AnimatePresence } from "framer-motion";
 
 interface ShareModalProps {
   shareToken: string;
@@ -22,7 +21,7 @@ export function ShareModal({ shareToken, recipientName, occasion }: ShareModalPr
   };
 
   const shareUrl = getShareUrl();
-  const shareMessage = `Coucou ${recipientName} ! 🎁 Réponds à ces 3 petites questions rapides pour m''aider à te préparer une surprise : ${shareUrl}`;
+  const shareMessage = `Coucou ${recipientName} ! 🎁 Réponds à ces 3 petites questions rapides pour m\u2019aider à te préparer une surprise : ${shareUrl}`;
 
   const handleCopy = async () => {
     try {
@@ -122,7 +121,7 @@ export function ShareModal({ shareToken, recipientName, occasion }: ShareModalPr
       <div className="mt-4 pt-4 border-t border-blush-100 flex items-center justify-between text-xs text-charcoal-muted">
         <span className="flex items-center gap-1.5">
           <Sparkles className="w-3.5 h-3.5 text-fuchsia-brand" />
-          Le lien reste actif jusqu''à ce que {recipientName} réponde.
+          Le lien reste actif jusqu'à ce que {recipientName} réponde.
         </span>
         {typeof navigator !== "undefined" && (navigator as any).share && (
           <button

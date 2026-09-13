@@ -9,10 +9,9 @@ interface Props {
 
 export const revalidate = 0;
 
-export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const { token } = params;
+export async function generateMetadata(): Promise<Metadata> {
   return {
-    title: "Une surprise se prépare pour toi 🎁 — Fyp",
+    title: "Une surprise se prépare pour toi 🎁, Fyp",
     description: "Réponds à 3 petites questions simples pour nous aider à te faire plaisir !",
   };
 }

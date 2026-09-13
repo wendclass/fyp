@@ -1,23 +1,16 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
-import { createClient } from "@/lib/supabase/server";
 import { getQuestionnaireDetails } from "@/app/actions/questionnaire";
 import { ShareModal } from "@/components/share-modal";
 import { RecommendationsReveal } from "@/components/recommendations-reveal";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { formatFCFA } from "@/lib/utils";
 import {
   ArrowLeft,
   Clock,
-  CheckCircle2,
-  Heart,
   Gift,
   Sparkles,
   Smile,
-  Ban,
-  DollarSign,
-  Calendar,
 } from "lucide-react";
 
 interface Props {
@@ -27,7 +20,7 @@ interface Props {
 
 export const revalidate = 0;
 
-export default async function SurpriseDetailPage({ params, searchParams }: Props) {
+export default async function SurpriseDetailPage({ params }: Props) {
   const { id } = params;
   const { questionnaire, answers, recommendations, error } = await getQuestionnaireDetails(id);
 
@@ -40,7 +33,6 @@ export default async function SurpriseDetailPage({ params, searchParams }: Props
   }
 
   const isAnswered = questionnaire.status === "answered" || questionnaire.status === "completed";
-  const isCreatedJustNow = searchParams.created === "true";
 
   return (
     <div className="max-w-5xl mx-auto px-4 sm:px-6 py-10 md:py-14 space-y-10">
@@ -116,8 +108,8 @@ export default async function SurpriseDetailPage({ params, searchParams }: Props
             </h3>
             <p className="text-xs sm:text-sm text-charcoal-light leading-relaxed">
               1. Envoyez le lien ci-dessus à <strong>{questionnaire.recipient_name}</strong>.<br />
-              2. Elle répondra en 1 minute à 3 questions rapides sans jamais voir vos <strong>{formatFCFA(questionnaire.budget)}</strong>.<br />
-              3. Vous recevrez l''analyse de ses réponses et 3 idées de cadeaux ultra ciblées.
+              2. Votre proche répondra en 1 minute à 3 questions rapides sans jamais voir vos <strong>{formatFCFA(questionnaire.budget)}</strong>.<br />
+              3. Vous recevrez l’analyse de ses réponses et 3 idées de cadeaux ultra ciblées.
             </p>
           </div>
         </div>
@@ -155,7 +147,7 @@ export default async function SurpriseDetailPage({ params, searchParams }: Props
                 {/* Q2 */}
                 <div className="p-4 rounded-3xl bg-blush-50 border border-blush-200">
                   <span className="text-[11px] font-bold text-fuchsia-brand uppercase tracking-wider block mb-1">
-                    Ce qu''elle aime
+                    Ce qu’elle aime
                   </span>
                   <div className="flex flex-wrap gap-1 mt-1">
                     {answers.q2_likes?.length > 0 ? (
@@ -176,7 +168,7 @@ export default async function SurpriseDetailPage({ params, searchParams }: Props
                 {/* Q3 */}
                 <div className="p-4 rounded-3xl bg-blush-50 border border-blush-200">
                   <span className="text-[11px] font-bold text-rose-500 uppercase tracking-wider block mb-1">
-                    Ce qu''elle préfère éviter
+                    Ce qu’elle préfère éviter
                   </span>
                   <div className="flex flex-wrap gap-1 mt-1">
                     {answers.q3_dislikes?.length > 0 ? (

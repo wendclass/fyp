@@ -64,9 +64,9 @@ export function generateRecommendations(
     if (hasQ1Match) {
       score += 1.5;
       if (q1 === "Quelque chose à porter") {
-        reasons.push("Correspond à son envie d'un article à porter.");
+        reasons.push("Correspond à son envie d’un article à porter.");
       } else if (q1 === "Quelque chose à utiliser") {
-        reasons.push("C'est un objet utile au quotidien selon son souhait.");
+        reasons.push("C’est un objet utile au quotidien selon son souhait.");
       } else if (q1 === "Quelque chose à manger") {
         reasons.push("Répond à son goût pour les plaisirs gourmands.");
       } else if (q1 === "Une expérience") {
@@ -95,7 +95,7 @@ export function generateRecommendations(
     // 3. Budget alignment bonus
     if (gift.budget_min <= targetBudget && gift.budget_max >= targetBudget) {
       score += 1.0;
-      reasons.push(`S'intègre parfaitement dans votre budget (${formatFCFA(targetBudget)}).`);
+      reasons.push(`S’intègre parfaitement dans votre budget (${formatFCFA(targetBudget)}).`);
     } else {
       reasons.push(`Adapté à la fourchette budgétaire envisagée.`);
     }

@@ -2,8 +2,8 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { motion, AnimatePresence } from "framer-motion";
-import { Gift, ArrowRight, ArrowLeft, Sparkles, Check, DollarSign, User } from "lucide-react";
+import { motion } from "framer-motion";
+import { Gift, ArrowRight, ArrowLeft, Sparkles, Check, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { createClient } from "@/lib/supabase/client";
@@ -22,17 +22,17 @@ const BUDGET_PRESETS = [
   { value: "5000", label: "5 000 FCFA", desc: "Petite attention délicate" },
   { value: "10000", label: "10 000 FCFA", desc: "Joli cadeau sympa" },
   { value: "25000", label: "25 000 FCFA", desc: "Superbe cadeau marquant" },
-  { value: "50000", label: "50 000 FCFA", desc: "Cadeau d''exception & prestige" },
+  { value: "50000", label: "50 000 FCFA", desc: "Cadeau d’exception et prestige" },
 ];
 
 export default function CreateSurprisePage() {
   const router = useRouter();
   const [recipientName, setRecipientName] = useState("");
   const [occasion, setOccasion] = useState("Anniversaire");
-  const [budgetType, setBudgetType] = useState("preset"); // "preset" | "custom"
+  const [budgetType, setBudgetType] = useState<"preset" | "custom">("preset");
   const [budgetPreset, setBudgetPreset] = useState("25000");
   const [customBudget, setCustomBudget] = useState("");
-  
+
   const [step, setStep] = useState<1 | 2>(1);
   const [loading, setLoading] = useState(false);
   const [user, setUser] = useState<any>(null);
@@ -67,7 +67,6 @@ export default function CreateSurprisePage() {
     }
 
     if (!user) {
-      // If not logged in, redirect to login with query params to preserve draft
       router.push(`/auth/login?redirect=/create`);
       return;
     }
@@ -124,7 +123,7 @@ export default function CreateSurprisePage() {
           Préparer une surprise 🎁
         </h1>
         <p className="text-charcoal-light text-base sm:text-lg mt-2">
-          Renseignez le prénom, l''occasion et votre budget pour générer le lien secret.
+          Renseignez le prénom, l’occasion et votre budget pour générer le lien secret.
         </p>
       </div>
 
@@ -134,7 +133,7 @@ export default function CreateSurprisePage() {
         </div>
       )}
 
-      {/* STEP 1: Prénom & Occasion */}
+      {/* STEP 1: Prénom et Occasion */}
       {step === 1 && (
         <motion.div
           initial={{ opacity: 0, y: 15 }}
@@ -147,7 +146,7 @@ export default function CreateSurprisePage() {
               Pour qui préparez-vous ce cadeau ?
             </label>
             <p className="text-xs sm:text-sm text-charcoal-light mb-4">
-              Ce prénom sera affiché sur le lien personnalisé (ex: Amélie, Thomas, Sarah...).
+              Ce prénom sera affiché sur le lien personnalisé (ex : Amélie, Thomas, Sarah...).
             </p>
             <div className="relative">
               <User className="w-5 h-5 absolute left-4 top-1/2 -translate-y-1/2 text-charcoal-muted" />
@@ -166,7 +165,7 @@ export default function CreateSurprisePage() {
           <div className="bg-white rounded-4xl p-6 sm:p-8 border border-blush-200 shadow-soft-xl">
             <div className="mb-6">
               <h2 className="font-display font-bold text-xl sm:text-2xl text-charcoal">
-                Quelle est l''occasion ?
+                Quelle est l’occasion ?
               </h2>
               <p className="text-xs sm:text-sm text-charcoal-light mt-1">
                 Cela permet de contextualiser les suggestions de cadeaux.
@@ -221,7 +220,7 @@ export default function CreateSurprisePage() {
         </motion.div>
       )}
 
-      {/* STEP 2: Budget & Validation */}
+      {/* STEP 2: Budget et Validation */}
       {step === 2 && (
         <motion.div
           initial={{ opacity: 0, y: 15 }}
@@ -296,7 +295,7 @@ export default function CreateSurprisePage() {
                 <div className="mt-3">
                   <Input
                     type="number"
-                    placeholder="Ex: 35000"
+                    placeholder="Ex : 35000"
                     value={customBudget}
                     onChange={(e) => setCustomBudget(e.target.value)}
                     className="text-lg font-bold"

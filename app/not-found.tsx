@@ -13,12 +13,12 @@ export default function NotFound() {
           Page introuvable
         </h2>
         <p className="text-sm text-charcoal-light leading-relaxed mb-8">
-          Le questionnaire ou la page que vous recherchez n''existe pas ou le lien a expiré.
+          Le questionnaire ou la page que vous recherchez n’existe pas ou le lien a expiré.
         </p>
         <Link href="/">
           <Button variant="primary" size="lg" className="w-full">
             <ArrowLeft className="w-4 h-4" />
-            <span>Retour à l''accueil</span>
+            <span>Retour à l’accueil</span>
           </Button>
         </Link>
       </div>

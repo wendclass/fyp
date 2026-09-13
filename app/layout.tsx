@@ -17,9 +17,9 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "Fyp — Offrir le cadeau parfait sans jamais gâcher la surprise",
+  title: "Fyp, offrir le cadeau parfait sans jamais gâcher la surprise",
   description:
-    "Recommandation de cadeaux basée sur un mécanisme d''aveuglement. Votre proche répond à 3 questions sans voir le budget, et vous choisissez le meilleur cadeau parmi 3 idées adaptées.",
+    "Recommandation de cadeaux basée sur un mécanisme d’aveuglement. Votre proche répond à 3 questions sans voir le budget, et vous choisissez le meilleur cadeau parmi 3 idées adaptées.",
   icons: {
     icon: "/icon.svg",
     apple: "/apple-icon.png",

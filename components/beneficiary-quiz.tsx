@@ -53,7 +53,7 @@ export function BeneficiaryQuiz({
   occasion = "un événement spécial",
   alreadyAnswered = false,
 }: BeneficiaryQuizProps) {
-  const [step, setStep] = useState<number>(0); // 0 = intro, 1 = Q1, 2 = Q2, 3 = Q3, 4 = success
+  const [step, setStep] = useState<number>(0);
   const [direction, setDirection] = useState<number>(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -77,7 +77,7 @@ export function BeneficiaryQuiz({
             <Check className="w-8 h-8" />
           </div>
           <h2 className="font-display font-extrabold text-2xl sm:text-3xl text-charcoal mb-3">
-            C''est déjà noté ❤️
+            C’est déjà noté ❤️
           </h2>
           <p className="text-charcoal-light text-base leading-relaxed mb-6">
             Tu as déjà répondu à ce questionnaire pour {recipientName}. Tout est prêt pour ta surprise !
@@ -97,7 +97,7 @@ export function BeneficiaryQuiz({
       return;
     }
     if (step === 3 && q3.length === 0) {
-      setErrorMsg("Sélectionne au moins une option (ou 'Rien en particulier')");
+      setErrorMsg("Sélectionne au moins une option (ou \"Rien en particulier\")");
       return;
     }
 
@@ -142,7 +142,7 @@ export function BeneficiaryQuiz({
     setErrorMsg(null);
 
     try {
-      const { data, error } = await supabase.rpc("submit_questionnaire", {
+      const { error } = await supabase.rpc("submit_questionnaire", {
         p_token: token,
         p_q1: q1,
         p_q2: q2,
@@ -153,10 +153,10 @@ export function BeneficiaryQuiz({
         throw error;
       }
 
-      setStep(4); // Success screen
+      setStep(4);
     } catch (err: any) {
       console.error("Submission error:", err);
-      setErrorMsg("Une erreur est survenue lors de l''envoi. Merci de réessayer.");
+      setErrorMsg("Une erreur est survenue lors de l’envoi. Merci de réessayer.");
     } finally {
       setIsSubmitting(false);
     }
@@ -246,7 +246,7 @@ export function BeneficiaryQuiz({
               </h1>
 
               <p className="text-charcoal-light text-base sm:text-lg leading-relaxed mb-8">
-                Quelqu''un qui t''apprécie souhaite te faire une surprise pour {occasion}. Réponds à <span className="font-semibold text-charcoal">3 petites questions</span> très rapides (1 minute max) pour l''aider à cerner tes goûts !
+                Quelqu’un qui t’apprécie souhaite te faire une surprise pour {occasion}. Réponds à <span className="font-semibold text-charcoal">3 petites questions</span> très rapides (1 minute max) pour l’aider à cerner tes goûts !
               </p>
 
               <Button
@@ -257,7 +257,7 @@ export function BeneficiaryQuiz({
                 size="lg"
                 className="w-full"
               >
-                <span>C''est parti !</span>
+                <span>C’est parti !</span>
                 <ArrowRight className="w-5 h-5" />
               </Button>
             </motion.div>
@@ -279,10 +279,10 @@ export function BeneficiaryQuiz({
                   Question 1 / 3
                 </span>
                 <h2 className="font-display font-extrabold text-2xl sm:text-3xl text-charcoal tracking-tight">
-                  Qu''est-ce qui te ferait le plus plaisir ?
+                  Qu’est-ce qui te ferait le plus plaisir ?
                 </h2>
                 <p className="text-sm text-charcoal-muted mt-1">
-                  Choisis l''option qui te tente le plus en ce moment.
+                  Choisis l’option qui te tente le plus en ce moment.
                 </p>
               </div>
 
@@ -369,7 +369,7 @@ export function BeneficiaryQuiz({
                   Question 2 / 3
                 </span>
                 <h2 className="font-display font-extrabold text-2xl sm:text-3xl text-charcoal tracking-tight">
-                  Qu''est-ce que tu aimes ?
+                  Qu’est-ce que tu aimes ?
                 </h2>
                 <p className="text-sm text-charcoal-muted mt-1">
                   Sélectionne tous les univers qui te passionnent (plusieurs choix possibles).
@@ -448,7 +448,7 @@ export function BeneficiaryQuiz({
                   Y a-t-il des choses que tu évites ?
                 </h2>
                 <p className="text-sm text-charcoal-muted mt-1">
-                  Ce que tu n''aimes pas recevoir ou as déjà en trop grande quantité.
+                  Ce que tu n’aimes pas recevoir ou as déjà en trop grande quantité.
                 </p>
               </div>
 
@@ -521,11 +521,11 @@ export function BeneficiaryQuiz({
               </div>
 
               <h2 className="font-display font-black text-3xl sm:text-4xl text-charcoal mb-3 tracking-tight">
-                C''est noté ❤️
+                C’est noté ❤️
               </h2>
 
               <p className="text-charcoal-light text-lg sm:text-xl leading-relaxed mb-6">
-                Merci d''avoir répondu, {recipientName} !
+                Merci d’avoir répondu, {recipientName} !
               </p>
 
               <div className="p-4 rounded-3xl bg-blush-50 border border-blush-200 text-sm text-charcoal-muted leading-relaxed max-w-md mx-auto">
@@ -539,7 +539,7 @@ export function BeneficiaryQuiz({
 
       {/* Discreet Footer */}
       <div className="text-center text-xs text-charcoal-muted py-2">
-        Propulsé par <span className="font-bold text-charcoal">Fyp</span> — L''art de faire plaisir sans se tromper.
+        Propulsé par <span className="font-bold text-charcoal">Fyp</span>, l’art de faire plaisir sans se tromper.
       </div>
     </div>
   );

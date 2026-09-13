@@ -48,7 +48,7 @@ export async function signup(formData: FormData) {
   });
 
   if (error) {
-    return { error: error.message || "Erreur lors de l''inscription." };
+    return { error: error.message || "Erreur lors de l’inscription." };
   }
 
   revalidatePath("/", "layout");

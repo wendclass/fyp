@@ -5,11 +5,11 @@ import { motion, AnimatePresence } from "framer-motion";
 
 const PHRASES = [
   "un anniversaire inoubliable 🎂",
-  "la personne de ta vie ❤️",
+  "la personne de votre vie ❤️",
   "célébrer une grande réussite 🏆",
   "dire un immense merci 🙏",
   "féliciter un proche ✨",
-  "surprendre sans te tromper 🎁",
+  "surprendre sans vous tromper 🎁",
 ];
 
 export function HeroAnimatedText() {
@@ -23,15 +23,15 @@ export function HeroAnimatedText() {
   }, []);
 
   return (
-    <span className="inline-block relative h-[1.3em] overflow-hidden align-top text-fuchsia-brand min-w-[280px] sm:min-w-[380px] md:min-w-[460px] text-left">
+    <span className="inline-block text-fuchsia-brand font-display font-black tracking-tight min-h-[1.3em] relative text-center">
       <AnimatePresence mode="wait">
         <motion.span
           key={index}
-          initial={{ y: 40, opacity: 0, filter: "blur(4px)" }}
+          initial={{ y: 24, opacity: 0, filter: "blur(4px)" }}
           animate={{ y: 0, opacity: 1, filter: "blur(0px)" }}
-          exit={{ y: -40, opacity: 0, filter: "blur(4px)" }}
+          exit={{ y: -24, opacity: 0, filter: "blur(4px)" }}
           transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
-          className="absolute inset-0 whitespace-nowrap font-display font-extrabold tracking-tight drop-shadow-sm"
+          className="inline-block text-fuchsia-brand drop-shadow-sm px-1"
         >
           {PHRASES[index]}
         </motion.span>
