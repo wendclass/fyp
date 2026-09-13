@@ -8,6 +8,7 @@ import { Gift, Lock, Mail, ArrowRight, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { createClient } from "@/lib/supabase/client";
+import { linkVisitorToUser, trackEvent } from "@/lib/tracker";
 
 function GoogleIcon({ className }: { className?: string }) {
   return (
@@ -92,6 +93,11 @@ function SignUpForm() {
 
       if (error) {
         throw error;
+      }
+
+      if (data?.user) {
+        await linkVisitorToUser(data.user.id);
+        trackEvent("inscription_reussie", { email });
       }
 
       if (data.session) {

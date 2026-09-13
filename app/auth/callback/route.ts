@@ -30,8 +30,20 @@ export async function GET(request: Request) {
       }
     );
 
-    const { error } = await supabase.auth.exchangeCodeForSession(code);
-    if (!error) {
+    const { data, error } = await supabase.auth.exchangeCodeForSession(code);
+    if (!error && data?.user) {
+      // Link visitor_id from cookie to user_id
+      const vid = cookieStore.get("fyp_vid")?.value;
+      if (vid) {
+        try {
+          await supabase.rpc("link_visitor_to_user", {
+            p_visitor_id: vid,
+            p_user_id: data.user.id,
+          });
+        } catch (e) {
+          // ignore
+        }
+      }
       return NextResponse.redirect(`${origin}${next}`);
     }
   }

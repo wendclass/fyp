@@ -12,14 +12,13 @@ import {
   User,
   Globe,
   Calendar,
-  DollarSign,
-  Coins,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { createClient } from "@/lib/supabase/client";
 import { slugifyRecipient, formatFCFA } from "@/lib/utils";
 import { AgeRangeType } from "@/lib/types";
+import { trackEvent } from "@/lib/tracker";
 
 const OCCASIONS = [
   { id: "Anniversaire", title: "Anniversaire", icon: "🎂", desc: "Pour fêter un an de plus comme il se doit" },
@@ -82,7 +81,12 @@ export default function CreateSurprisePage() {
 
   const supabase = createClient();
 
-  // Geolocation & Timezone auto-detection on mount
+  // Track initial page visit
+  useEffect(() => {
+    trackEvent("clic_creer_surprise", { step: 1 });
+  }, []);
+
+  // Geolocation & Timezone detection on mount
   useEffect(() => {
     async function checkAuthAndLocation() {
       const {
@@ -90,6 +94,23 @@ export default function CreateSurprisePage() {
       } = await supabase.auth.getSession();
       setUser(session?.user ?? null);
       setCheckingAuth(false);
+
+      // Check cookie consent for localisation
+      const consentStr = localStorage.getItem("fyp_cookie_consent_v1");
+      let locAllowed = true;
+      if (consentStr) {
+        try {
+          const parsed = JSON.parse(consentStr);
+          if (parsed.localisation === false) locAllowed = false;
+        } catch (e) {}
+      }
+
+      if (!locAllowed) {
+        // If localisation refused, switch to USD and leave country unselected
+        setCurrency("USD");
+        setBudgetPreset("45");
+        return;
+      }
 
       try {
         const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone || "";
@@ -102,15 +123,12 @@ export default function CreateSurprisePage() {
         else if (timeZone.includes("Porto-Novo") || timeZone.includes("Cotonou")) setCountry("Bénin");
         else if (timeZone.includes("Bissau")) setCountry("Guinée-Bissau");
         else {
-          // Attempt browser geolocation if available
           if ("geolocation" in navigator) {
             navigator.geolocation.getCurrentPosition(
               () => {
-                // If granted but country unknown, keep FCFA default
                 setCurrency("FCFA");
               },
               () => {
-                // If refused, switch to USD as requested
                 setCurrency("USD");
                 setBudgetPreset("45");
               }
@@ -121,7 +139,19 @@ export default function CreateSurprisePage() {
         // fallback
       }
     }
+
     checkAuthAndLocation();
+
+    const handleConsentChange = (e: any) => {
+      const loc = e.detail?.localisation_accepted;
+      if (loc === false) {
+        setCurrency("USD");
+        setBudgetPreset("45");
+      }
+    };
+
+    window.addEventListener("fyp-consent-updated", handleConsentChange);
+    return () => window.removeEventListener("fyp-consent-updated", handleConsentChange);
   }, [supabase]);
 
   // Sync preset default when currency changes
@@ -133,6 +163,7 @@ export default function CreateSurprisePage() {
     } else {
       setBudgetPreset("45");
     }
+    trackEvent("devise_selectionnee", { currency: newCurr });
   };
 
   const effectiveBudget = budgetType === "preset" ? budgetPreset : customBudget;
@@ -156,6 +187,7 @@ export default function CreateSurprisePage() {
     }
 
     if (!user) {
+      trackEvent("redirection_login_creation", { recipient_name: recipientName, occasion });
       router.push(`/auth/login?redirect=/create`);
       return;
     }
@@ -190,6 +222,16 @@ export default function CreateSurprisePage() {
         .single();
 
       if (error) throw error;
+
+      trackEvent("surprise_creee", {
+        id: data.id,
+        recipient_name: recipientName.trim(),
+        occasion,
+        age_range: ageRange,
+        country,
+        currency,
+        budget: formattedBudget,
+      });
 
       router.push(`/dashboard/${data.id}?created=true`);
     } catch (err: any) {
@@ -243,7 +285,7 @@ export default function CreateSurprisePage() {
               Pour qui préparez-vous ce cadeau ?
             </label>
             <p className="text-xs sm:text-sm text-charcoal-light mb-4">
-              Ce prénom sera affiché sur le lien personnalisé (ex : Amélie, Thomas, Sarah...).
+              Ce prénom sera affiché sur le lien secret (ex : Amélie, Thomas, Sarah...).
             </p>
             <div className="relative">
               <User className="w-5 h-5 absolute left-4 top-1/2 -translate-y-1/2 text-charcoal-muted" />
@@ -279,7 +321,10 @@ export default function CreateSurprisePage() {
                     <button
                       key={ar.id}
                       type="button"
-                      onClick={() => setAgeRange(ar.id)}
+                      onClick={() => {
+                        setAgeRange(ar.id);
+                        trackEvent("age_selectionne", { age: ar.id });
+                      }}
                       className={`flex flex-col items-center justify-center p-4 rounded-2xl border-2 text-center transition-all ${
                         isSelected
                           ? "border-fuchsia-brand bg-blush-50 ring-2 ring-fuchsia-brand/20 shadow-pink-sm scale-[1.02]"
@@ -320,7 +365,10 @@ export default function CreateSurprisePage() {
                     <button
                       key={c}
                       type="button"
-                      onClick={() => setCountry(c)}
+                      onClick={() => {
+                        setCountry(c);
+                        trackEvent("pays_selectionne", { country: c });
+                      }}
                       className={`flex items-center justify-between px-3 py-2.5 rounded-xl border-2 text-xs font-semibold transition-all ${
                         isSelected
                           ? "border-fuchsia-brand bg-blush-50 text-fuchsia-brand shadow-sm font-bold"
@@ -336,7 +384,7 @@ export default function CreateSurprisePage() {
             </div>
           </div>
 
-          {/* Card Occasion (Cartes Larges) */}
+          {/* Card Occasion */}
           <div className="bg-white rounded-4xl p-6 sm:p-8 border border-blush-200 shadow-soft-xl">
             <div className="mb-6">
               <h2 className="font-display font-bold text-xl sm:text-2xl text-charcoal">
@@ -354,7 +402,10 @@ export default function CreateSurprisePage() {
                   <button
                     key={occ.id}
                     type="button"
-                    onClick={() => setOccasion(occ.id)}
+                    onClick={() => {
+                      setOccasion(occ.id);
+                      trackEvent("occasion_selectionnee", { occasion: occ.id });
+                    }}
                     className={`flex flex-col items-start p-5 rounded-3xl border-2 text-left transition-all ${
                       isSelected
                         ? "border-fuchsia-brand bg-blush-50 ring-2 ring-fuchsia-brand/20 shadow-pink-sm scale-[1.01]"
@@ -389,6 +440,7 @@ export default function CreateSurprisePage() {
                 }
                 setErrorMsg(null);
                 setStep(2);
+                trackEvent("etape_suivante_creation", { step: 2, recipient_name: recipientName, occasion });
               }}
               className="w-full sm:w-auto"
             >
@@ -460,6 +512,7 @@ export default function CreateSurprisePage() {
                     onClick={() => {
                       setBudgetType("preset");
                       setBudgetPreset(preset.value);
+                      trackEvent("budget_choisi", { budget: preset.value, currency, type: "preset" });
                     }}
                     className={`flex items-center justify-between p-4 rounded-2xl border-2 text-left transition-all ${
                       isSelected

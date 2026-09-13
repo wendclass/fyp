@@ -8,6 +8,7 @@ import { Gift, Lock, Mail, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { createClient } from "@/lib/supabase/client";
+import { linkVisitorToUser, trackEvent } from "@/lib/tracker";
 
 function GoogleIcon({ className }: { className?: string }) {
   return (
@@ -78,13 +79,18 @@ function LoginForm() {
     setErrorMsg(null);
 
     try {
-      const { error } = await supabase.auth.signInWithPassword({
+      const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
 
       if (error) {
         throw error;
+      }
+
+      if (data?.user) {
+        await linkVisitorToUser(data.user.id);
+        trackEvent("connexion_reussie", { email });
       }
 
       router.push(redirectPath);

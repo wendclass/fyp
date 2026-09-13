@@ -1,10 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Gift, Heart, ArrowRight, ArrowLeft, Check, Sparkles, AlertCircle } from "lucide-react";
+import { Gift, Heart, ArrowRight, ArrowLeft, Check, Sparkles } from "lucide-react";
 import { Button } from "./ui/button";
 import { createClient } from "@/lib/supabase/client";
+import { trackEvent } from "@/lib/tracker";
 
 interface BeneficiaryQuizProps {
   token: string;
@@ -101,6 +102,14 @@ export function BeneficiaryQuiz({
 
   const supabase = createClient();
 
+  useEffect(() => {
+    trackEvent("questionnaire_ouvert", {
+      token,
+      recipient_name: recipientName,
+      already_answered: alreadyAnswered,
+    });
+  }, [token, recipientName, alreadyAnswered]);
+
   if (alreadyAnswered) {
     return (
       <div className="min-h-screen bg-blush-100 flex items-center justify-center p-4">
@@ -143,9 +152,18 @@ export function BeneficiaryQuiz({
 
     setErrorMsg(null);
     setDirection(1);
-    if (step < 4) {
-      setStep((s) => s + 1);
+
+    if (step === 1) {
+      trackEvent("reponse_q1", { q1, token });
+      setStep(2);
+    } else if (step === 2) {
+      trackEvent("reponse_q2", { q2, token });
+      setStep(3);
+    } else if (step === 3) {
+      trackEvent("reponse_q3", { q3, token });
+      setStep(4);
     } else if (step === 4) {
+      trackEvent("reponse_q4", { q4, token });
       handleSubmit();
     }
   };
@@ -202,6 +220,15 @@ export function BeneficiaryQuiz({
       if (error) {
         throw error;
       }
+
+      trackEvent("questionnaire_complete", {
+        token,
+        recipient_name: recipientName,
+        q1,
+        q2_count: q2.length,
+        q3_count: q3.length,
+        q4,
+      });
 
       setStep(5);
     } catch (err: any) {
@@ -303,6 +330,7 @@ export function BeneficiaryQuiz({
                 onClick={() => {
                   setDirection(1);
                   setStep(1);
+                  trackEvent("demarrage_questionnaire", { token, recipient_name: recipientName });
                 }}
                 size="lg"
                 className="w-full"
