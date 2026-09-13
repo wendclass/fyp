@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Gift, Heart, ArrowRight, ArrowLeft, Check, Sparkles } from "lucide-react";
+import { Gift, Heart, ArrowRight, ArrowLeft, Check, Sparkles, AlertCircle } from "lucide-react";
 import { Button } from "./ui/button";
 import { createClient } from "@/lib/supabase/client";
 
@@ -35,7 +35,20 @@ const Q2_OPTIONS = [
   { label: "Autre", icon: "✨" },
 ];
 
+// Q3: Extended list combining Q2 domains + materials
 const Q3_OPTIONS = [
+  // Domaines
+  { label: "Mode", icon: "👗" },
+  { label: "Beauté", icon: "💄" },
+  { label: "Technologie", icon: "💻" },
+  { label: "Sport", icon: "🏃" },
+  { label: "Musique", icon: "🎧" },
+  { label: "Livres", icon: "📚" },
+  { label: "Cuisine", icon: "🍳" },
+  { label: "Voyage", icon: "✈️" },
+  { label: "Jeux", icon: "🎲" },
+  { label: "Décoration", icon: "🛋️" },
+  // Matières & univers
   { label: "Parfums", icon: "🌸" },
   { label: "Vêtements", icon: "👔" },
   { label: "Bijoux", icon: "💍" },
@@ -44,7 +57,29 @@ const Q3_OPTIONS = [
   { label: "Gadgets électroniques", icon: "📱" },
   { label: "Objets décoratifs", icon: "🏺" },
   { label: "Expériences", icon: "🎟️" },
+  // Option neutre
   { label: "Rien en particulier", icon: "😊" },
+];
+
+const Q4_OPTIONS = [
+  {
+    label: "Utile",
+    icon: "🛠️",
+    title: "Quelque chose d’utile",
+    desc: "Un objet pratique qui sert réellement au quotidien",
+  },
+  {
+    label: "Fun",
+    icon: "🎉",
+    title: "Quelque chose de fun",
+    desc: "Pour le pur plaisir, sans besoin d’être pratique",
+  },
+  {
+    label: "Les deux",
+    icon: "✨",
+    title: "Les deux / Peu importe",
+    desc: "Un équilibre idéal ou une surprise totale",
+  },
 ];
 
 export function BeneficiaryQuiz({
@@ -53,7 +88,7 @@ export function BeneficiaryQuiz({
   occasion = "un événement spécial",
   alreadyAnswered = false,
 }: BeneficiaryQuizProps) {
-  const [step, setStep] = useState<number>(0);
+  const [step, setStep] = useState<number>(0); // 0 = intro, 1 = Q1, 2 = Q2, 3 = Q3, 4 = Q4, 5 = success
   const [direction, setDirection] = useState<number>(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -61,6 +96,7 @@ export function BeneficiaryQuiz({
   const [q1, setQ1] = useState<string>("");
   const [q2, setQ2] = useState<string[]>([]);
   const [q3, setQ3] = useState<string[]>([]);
+  const [q4, setQ4] = useState<string>("Les deux");
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   const supabase = createClient();
@@ -93,19 +129,23 @@ export function BeneficiaryQuiz({
       return;
     }
     if (step === 2 && q2.length === 0) {
-      setErrorMsg("Sélectionne au moins une catégorie que tu aimes");
+      setErrorMsg("Sélectionne au moins une catégorie (3 maximum)");
       return;
     }
     if (step === 3 && q3.length === 0) {
       setErrorMsg("Sélectionne au moins une option (ou \"Rien en particulier\")");
       return;
     }
+    if (step === 4 && !q4) {
+      setErrorMsg("Choisis une option pour finaliser 😊");
+      return;
+    }
 
     setErrorMsg(null);
     setDirection(1);
-    if (step < 3) {
+    if (step < 4) {
       setStep((s) => s + 1);
-    } else if (step === 3) {
+    } else if (step === 4) {
       handleSubmit();
     }
   };
@@ -117,12 +157,21 @@ export function BeneficiaryQuiz({
   };
 
   const toggleQ2Option = (opt: string) => {
-    setQ2((prev) =>
-      prev.includes(opt) ? prev.filter((i) => i !== opt) : [...prev, opt]
-    );
+    setErrorMsg(null);
+    setQ2((prev) => {
+      if (prev.includes(opt)) {
+        return prev.filter((i) => i !== opt);
+      }
+      if (prev.length >= 3) {
+        setErrorMsg("3 choix maximum pour tes univers favoris !");
+        return prev;
+      }
+      return [...prev, opt];
+    });
   };
 
   const toggleQ3Option = (opt: string) => {
+    setErrorMsg(null);
     if (opt === "Rien en particulier") {
       setQ3(["Rien en particulier"]);
       return;
@@ -147,13 +196,14 @@ export function BeneficiaryQuiz({
         p_q1: q1,
         p_q2: q2,
         p_q3: q3,
+        p_q4: q4,
       });
 
       if (error) {
         throw error;
       }
 
-      setStep(4);
+      setStep(5);
     } catch (err: any) {
       console.error("Submission error:", err);
       setErrorMsg("Une erreur est survenue lors de l’envoi. Merci de réessayer.");
@@ -195,18 +245,18 @@ export function BeneficiaryQuiz({
           </span>
         </div>
 
-        {step >= 1 && step <= 3 && (
+        {step >= 1 && step <= 4 && (
           <div className="text-xs font-semibold text-charcoal-muted uppercase tracking-wider">
-            Question {step} sur 3
+            Question {step} sur 4
           </div>
         )}
       </div>
 
-      {/* Progress Bar (3 segments) */}
-      {step >= 1 && step <= 3 && (
+      {/* Progress Bar (4 segments) */}
+      {step >= 1 && step <= 4 && (
         <div className="max-w-xl w-full mx-auto mt-4 px-2">
-          <div className="grid grid-cols-3 gap-2">
-            {[1, 2, 3].map((s) => (
+          <div className="grid grid-cols-4 gap-2">
+            {[1, 2, 3, 4].map((s) => (
               <div
                 key={s}
                 className="h-2 rounded-full overflow-hidden bg-blush-200"
@@ -246,7 +296,7 @@ export function BeneficiaryQuiz({
               </h1>
 
               <p className="text-charcoal-light text-base sm:text-lg leading-relaxed mb-8">
-                Quelqu’un qui t’apprécie souhaite te faire une surprise pour {occasion}. Réponds à <span className="font-semibold text-charcoal">3 petites questions</span> très rapides (1 minute max) pour l’aider à cerner tes goûts !
+                Quelqu’un qui t’apprécie souhaite te faire une surprise pour {occasion}. Réponds à <span className="font-semibold text-charcoal">4 petites questions</span> très rapides (1 minute max) pour l’aider à cerner tes goûts !
               </p>
 
               <Button
@@ -276,7 +326,7 @@ export function BeneficiaryQuiz({
             >
               <div className="mb-6">
                 <span className="text-xs font-bold text-fuchsia-brand uppercase tracking-wider mb-1 block">
-                  Question 1 / 3
+                  Question 1 / 4
                 </span>
                 <h2 className="font-display font-extrabold text-2xl sm:text-3xl text-charcoal tracking-tight">
                   Qu’est-ce qui te ferait le plus plaisir ?
@@ -353,7 +403,7 @@ export function BeneficiaryQuiz({
             </motion.div>
           )}
 
-          {/* STEP 2: Q2 (CHOIX MULTIPLE) */}
+          {/* STEP 2: Q2 (CHOIX MULTIPLE - MAX 3) */}
           {step === 2 && (
             <motion.div
               key="step-2"
@@ -364,29 +414,39 @@ export function BeneficiaryQuiz({
               exit="exit"
               className="bg-white rounded-4xl p-6 sm:p-8 md:p-10 shadow-soft-xl border border-blush-200"
             >
-              <div className="mb-6">
-                <span className="text-xs font-bold text-fuchsia-brand uppercase tracking-wider mb-1 block">
-                  Question 2 / 3
-                </span>
-                <h2 className="font-display font-extrabold text-2xl sm:text-3xl text-charcoal tracking-tight">
+              <div className="mb-4">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold text-fuchsia-brand uppercase tracking-wider block">
+                    Question 2 / 4
+                  </span>
+                  <span className="text-xs font-bold px-2.5 py-0.5 rounded-full bg-blush-100 text-fuchsia-brand">
+                    {q2.length}/3 sélectionnés
+                  </span>
+                </div>
+                <h2 className="font-display font-extrabold text-2xl sm:text-3xl text-charcoal tracking-tight mt-1">
                   Qu’est-ce que tu aimes ?
                 </h2>
                 <p className="text-sm text-charcoal-muted mt-1">
-                  Sélectionne tous les univers qui te passionnent (plusieurs choix possibles).
+                  Sélectionne <strong>jusqu’à 3 univers favoris</strong> qui te passionnent.
                 </p>
               </div>
 
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 mb-8">
                 {Q2_OPTIONS.map((opt) => {
                   const isSelected = q2.includes(opt.label);
+                  const isMaxReached = q2.length >= 3 && !isSelected;
+
                   return (
                     <button
                       key={opt.label}
                       type="button"
+                      disabled={isMaxReached}
                       onClick={() => toggleQ2Option(opt.label)}
                       className={`flex flex-col items-center justify-center p-3.5 rounded-2xl border-2 text-center transition-all ${
                         isSelected
                           ? "border-fuchsia-brand bg-blush-50 shadow-pink-sm scale-[1.02]"
+                          : isMaxReached
+                          ? "border-blush-100 bg-blush-50/40 text-charcoal-muted opacity-50 cursor-not-allowed"
                           : "border-blush-200 bg-white hover:border-blush-300 hover:bg-blush-50/50"
                       }`}
                     >
@@ -429,7 +489,7 @@ export function BeneficiaryQuiz({
             </motion.div>
           )}
 
-          {/* STEP 3: Q3 (CHOIX MULTIPLE - EXCLUSIONS) */}
+          {/* STEP 3: Q3 (CHOIX MULTIPLE ILLIMITÉ - EXCLUSIONS ÉTENDUES) */}
           {step === 3 && (
             <motion.div
               key="step-3"
@@ -440,19 +500,19 @@ export function BeneficiaryQuiz({
               exit="exit"
               className="bg-white rounded-4xl p-6 sm:p-8 md:p-10 shadow-soft-xl border border-blush-200"
             >
-              <div className="mb-6">
+              <div className="mb-4">
                 <span className="text-xs font-bold text-fuchsia-brand uppercase tracking-wider mb-1 block">
-                  Question 3 / 3
+                  Question 3 / 4
                 </span>
                 <h2 className="font-display font-extrabold text-2xl sm:text-3xl text-charcoal tracking-tight">
-                  Y a-t-il des choses que tu évites ?
+                  Y a-t-il quelque chose que tu n’aimes pas recevoir ?
                 </h2>
                 <p className="text-sm text-charcoal-muted mt-1">
-                  Ce que tu n’aimes pas recevoir ou as déjà en trop grande quantité.
+                  Ce que tu préfères éviter ou as déjà en trop grande quantité (choix illimité).
                 </p>
               </div>
 
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 mb-8">
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 max-h-[320px] overflow-y-auto p-1 mb-8">
                 {Q3_OPTIONS.map((opt) => {
                   const isSelected = q3.includes(opt.label);
                   return (
@@ -460,16 +520,108 @@ export function BeneficiaryQuiz({
                       key={opt.label}
                       type="button"
                       onClick={() => toggleQ3Option(opt.label)}
-                      className={`flex flex-col items-center justify-center p-3.5 rounded-2xl border-2 text-center transition-all ${
+                      className={`flex flex-col items-center justify-center p-3 rounded-2xl border-2 text-center transition-all ${
                         isSelected
-                          ? "border-rose-400 bg-rose-50 shadow-sm scale-[1.02]"
+                          ? opt.label === "Rien en particulier"
+                            ? "border-emerald-500 bg-emerald-50 text-emerald-700 shadow-sm"
+                            : "border-rose-400 bg-rose-50 text-rose-700 shadow-sm scale-[1.02]"
+                          : "border-blush-200 bg-white hover:border-blush-300 hover:bg-blush-50/50 text-charcoal"
+                      }`}
+                    >
+                      <span className="text-xl mb-1">{opt.icon}</span>
+                      <span className="font-display font-semibold text-xs leading-tight">
+                        {opt.label}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+
+              {errorMsg && (
+                <div className="text-sm text-rose-500 font-medium mb-4 text-center">
+                  {errorMsg}
+                </div>
+              )}
+
+              <div className="flex items-center gap-3">
+                <Button
+                  type="button"
+                  variant="white"
+                  size="md"
+                  onClick={handlePrev}
+                  className="px-4"
+                >
+                  <ArrowLeft className="w-4 h-4" />
+                </Button>
+                <Button
+                  type="button"
+                  variant="primary"
+                  size="md"
+                  onClick={handleNext}
+                  className="flex-1"
+                >
+                  <span>Continuer</span>
+                  <ArrowRight className="w-4 h-4" />
+                </Button>
+              </div>
+            </motion.div>
+          )}
+
+          {/* STEP 4: Q4 (NOUVELLE: UTILE VS FUN) */}
+          {step === 4 && (
+            <motion.div
+              key="step-4"
+              custom={direction}
+              variants={slideVariants}
+              initial="enter"
+              animate="center"
+              exit="exit"
+              className="bg-white rounded-4xl p-6 sm:p-8 md:p-10 shadow-soft-xl border border-blush-200"
+            >
+              <div className="mb-6">
+                <span className="text-xs font-bold text-fuchsia-brand uppercase tracking-wider mb-1 block">
+                  Question 4 / 4
+                </span>
+                <h2 className="font-display font-extrabold text-2xl sm:text-3xl text-charcoal tracking-tight">
+                  Utile au quotidien ou purement fun ?
+                </h2>
+                <p className="text-sm text-charcoal-muted mt-1">
+                  Qu’est-ce qui te ferait le plus plaisir entre ces orientations ?
+                </p>
+              </div>
+
+              <div className="space-y-3.5 mb-8">
+                {Q4_OPTIONS.map((opt) => {
+                  const isSelected = q4 === opt.label;
+                  return (
+                    <button
+                      key={opt.label}
+                      type="button"
+                      onClick={() => setQ4(opt.label)}
+                      className={`w-full flex items-center justify-between p-4 sm:p-5 rounded-3xl border-2 text-left transition-all duration-200 ${
+                        isSelected
+                          ? "border-fuchsia-brand bg-blush-50 shadow-pink-sm scale-[1.01]"
                           : "border-blush-200 bg-white hover:border-blush-300 hover:bg-blush-50/50"
                       }`}
                     >
-                      <span className="text-2xl mb-1">{opt.icon}</span>
-                      <span className="font-display font-semibold text-xs text-charcoal">
-                        {opt.label}
-                      </span>
+                      <div className="flex items-center gap-3.5">
+                        <span className="text-3xl">{opt.icon}</span>
+                        <div>
+                          <div className="font-display font-bold text-base sm:text-lg text-charcoal">
+                            {opt.title}
+                          </div>
+                          <div className="text-xs text-charcoal-muted mt-0.5">{opt.desc}</div>
+                        </div>
+                      </div>
+                      <div
+                        className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all shrink-0 ${
+                          isSelected
+                            ? "border-fuchsia-brand bg-fuchsia-brand text-white"
+                            : "border-blush-300"
+                        }`}
+                      >
+                        {isSelected && <Check className="w-3.5 h-3.5" />}
+                      </div>
                     </button>
                   );
                 })}
@@ -501,16 +653,16 @@ export function BeneficiaryQuiz({
                   className="flex-1"
                 >
                   <Heart className="w-4 h-4" />
-                  <span>Envoyer mes réponses</span>
+                  <span>Envoyer mes 4 réponses</span>
                 </Button>
               </div>
             </motion.div>
           )}
 
-          {/* STEP 4: SUCCESS CONFIRMATION */}
-          {step === 4 && (
+          {/* STEP 5: SUCCESS CONFIRMATION */}
+          {step === 5 && (
             <motion.div
-              key="step-4"
+              key="step-5"
               initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               transition={{ type: "spring", stiffness: 350, damping: 25 }}
@@ -530,7 +682,7 @@ export function BeneficiaryQuiz({
 
               <div className="p-4 rounded-3xl bg-blush-50 border border-blush-200 text-sm text-charcoal-muted leading-relaxed max-w-md mx-auto">
                 <Sparkles className="w-4 h-4 text-fuchsia-brand inline mr-1.5" />
-                Tes réponses ont été transmises en toute discrétion. Prépare-toi à être surpris(e) !
+                Tes 4 réponses ont été transmises en toute discrétion. Prépare-toi à être surpris(e) !
               </div>
             </motion.div>
           )}

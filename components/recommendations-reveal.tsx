@@ -97,7 +97,7 @@ export function RecommendationsReveal({
           transition={{ duration: 0.5, delay: 0.1 }}
           className="font-display font-black text-3xl sm:text-4xl text-charcoal tracking-tight"
         >
-          Voici les cadeaux idéaux pour {questionnaire.recipient_name} ✨
+          Voici les 3 idées de cadeaux les plus adaptées pour {questionnaire.recipient_name} ✨
         </motion.h2>
 
         <motion.p
@@ -106,12 +106,12 @@ export function RecommendationsReveal({
           transition={{ duration: 0.5, delay: 0.2 }}
           className="text-charcoal-light text-base mt-2"
         >
-          Croisement précis des goûts exprimés et de votre budget ({questionnaire.budget} FCFA).
+          Sélectionnées sur-mesure selon les réponses reçues et vos critères.
           Sélectionnez activement l’idée qui vous inspire le plus.
         </motion.p>
       </div>
 
-      {/* 3 Choreographed Recommendation Cards */}
+      {/* 3 Choreographed Recommendation Cards (NO PRICES DISPLAYED) */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {recommendations.map((item, index) => {
           const isSelected = selectedGiftId === item.gift.id;

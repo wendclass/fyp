@@ -4,13 +4,13 @@ import { getQuestionnaireDetails } from "@/app/actions/questionnaire";
 import { ShareModal } from "@/components/share-modal";
 import { RecommendationsReveal } from "@/components/recommendations-reveal";
 import { Badge } from "@/components/ui/badge";
-import { formatFCFA } from "@/lib/utils";
 import {
   ArrowLeft,
   Clock,
   Gift,
   Sparkles,
   Smile,
+  Compass,
 } from "lucide-react";
 
 interface Props {
@@ -74,8 +74,18 @@ export default async function SurpriseDetailPage({ params }: Props) {
             </h1>
             <p className="text-sm text-charcoal-light mt-2 flex flex-wrap items-center gap-x-4 gap-y-1">
               <span>Occasion : <strong>{questionnaire.occasion || "Anniversaire"}</strong></span>
-              <span>•</span>
-              <span>Budget : <strong className="text-fuchsia-brand">{formatFCFA(questionnaire.budget)}</strong></span>
+              {questionnaire.recipient_age_range && (
+                <>
+                  <span>•</span>
+                  <span>Âge : <strong>{questionnaire.recipient_age_range} ans</strong></span>
+                </>
+              )}
+              {questionnaire.recipient_country && (
+                <>
+                  <span>•</span>
+                  <span>Pays : <strong>{questionnaire.recipient_country}</strong></span>
+                </>
+              )}
               <span>•</span>
               <span>Créée le {new Date(questionnaire.created_at).toLocaleDateString("fr-FR")}</span>
             </p>
@@ -108,7 +118,7 @@ export default async function SurpriseDetailPage({ params }: Props) {
             </h3>
             <p className="text-xs sm:text-sm text-charcoal-light leading-relaxed">
               1. Envoyez le lien ci-dessus à <strong>{questionnaire.recipient_name}</strong>.<br />
-              2. Votre proche répondra en 1 minute à 3 questions rapides sans jamais voir vos <strong>{formatFCFA(questionnaire.budget)}</strong>.<br />
+              2. Votre proche répondra en 1 minute à 4 questions simples sans jamais voir le budget fixé.<br />
               3. Vous recevrez l’analyse de ses réponses et 3 idées de cadeaux ultra ciblées.
             </p>
           </div>
@@ -116,7 +126,7 @@ export default async function SurpriseDetailPage({ params }: Props) {
       ) : (
         /* IF ANSWERED: DISPLAY ANSWERS SUMMARY + RECOMMENDATIONS REVEAL */
         <div className="space-y-12">
-          {/* Fiche récapitulative des réponses de la personne */}
+          {/* Fiche récapitulative des réponses de la personne (4 questions) */}
           {answers && (
             <div className="bg-white rounded-4xl p-6 sm:p-8 border border-blush-200 shadow-soft-xl">
               <div className="flex items-center gap-3 mb-6">
@@ -133,13 +143,13 @@ export default async function SurpriseDetailPage({ params }: Props) {
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 {/* Q1 */}
                 <div className="p-4 rounded-3xl bg-blush-50 border border-blush-200">
                   <span className="text-[11px] font-bold text-fuchsia-brand uppercase tracking-wider block mb-1">
                     Ce qui lui ferait plaisir
                   </span>
-                  <div className="font-display font-bold text-base text-charcoal">
+                  <div className="font-display font-bold text-sm text-charcoal">
                     {answers.q1_pleasure}
                   </div>
                 </div>
@@ -147,7 +157,7 @@ export default async function SurpriseDetailPage({ params }: Props) {
                 {/* Q2 */}
                 <div className="p-4 rounded-3xl bg-blush-50 border border-blush-200">
                   <span className="text-[11px] font-bold text-fuchsia-brand uppercase tracking-wider block mb-1">
-                    Ce qu’elle aime
+                    Ce qu’elle aime (Max 3)
                   </span>
                   <div className="flex flex-wrap gap-1 mt-1">
                     {answers.q2_likes?.length > 0 ? (
@@ -185,11 +195,22 @@ export default async function SurpriseDetailPage({ params }: Props) {
                     )}
                   </div>
                 </div>
+
+                {/* Q4 */}
+                <div className="p-4 rounded-3xl bg-blush-50 border border-blush-200">
+                  <span className="text-[11px] font-bold text-indigo-600 uppercase tracking-wider block mb-1">
+                    Orientation choisie
+                  </span>
+                  <div className="font-display font-bold text-sm text-charcoal flex items-center gap-1.5">
+                    <Compass className="w-4 h-4 text-indigo-500" />
+                    <span>{answers.q4_hedonic_utilitarian || "Les deux"}</span>
+                  </div>
+                </div>
               </div>
             </div>
           )}
 
-          {/* Chorégraphie des 3 recommandations */}
+          {/* Chorégraphie des 3 recommandations (SANS PRIX) */}
           <RecommendationsReveal
             questionnaire={questionnaire}
             recommendations={recommendations}

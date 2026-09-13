@@ -12,7 +12,7 @@ export const revalidate = 0;
 export async function generateMetadata(): Promise<Metadata> {
   return {
     title: "Une surprise se prépare pour toi 🎁, Fyp",
-    description: "Réponds à 3 petites questions simples pour nous aider à te faire plaisir !",
+    description: "Réponds à 4 petites questions simples pour nous aider à te faire plaisir !",
   };
 }
 

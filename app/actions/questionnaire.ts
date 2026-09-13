@@ -21,6 +21,9 @@ export async function createSurpriseAction(formData: FormData) {
   const recipient_name = (formData.get("recipient_name") as string)?.trim();
   const occasion = (formData.get("occasion") as string) || "Anniversaire";
   const budget = (formData.get("budget") as string) || "25000";
+  const currency = (formData.get("currency") as string) || "FCFA";
+  const recipient_age_range = (formData.get("recipient_age_range") as string) || "25-34";
+  const recipient_country = (formData.get("recipient_country") as string) || "";
 
   if (!recipient_name) {
     return { error: "Veuillez entrer le prénom de la personne à qui vous offrez ce cadeau." };
@@ -36,6 +39,9 @@ export async function createSurpriseAction(formData: FormData) {
       recipient_name,
       occasion,
       budget,
+      currency,
+      recipient_age_range,
+      recipient_country,
       title,
       status: "sent",
       share_token,
@@ -88,6 +94,18 @@ export async function getQuestionnaireDetails(id: string): Promise<{
     .limit(1)
     .maybeSingle();
 
+  // Fetch exchange rate
+  let fcfaRate = 600;
+  const { data: rateRow } = await supabase
+    .from("exchange_rate")
+    .select("fcfa_per_usd")
+    .eq("id", 1)
+    .maybeSingle();
+
+  if (rateRow?.fcfa_per_usd) {
+    fcfaRate = Number(rateRow.fcfa_per_usd);
+  }
+
   // If questionnaire is answered, compute recommendations
   let recommendations: ScoredGift[] = [];
   if (answers) {
@@ -100,7 +118,10 @@ export async function getQuestionnaireDetails(id: string): Promise<{
         gifts as Gift[],
         questionnaire.budget,
         answers as AnswersRecord,
-        questionnaire.recipient_name
+        questionnaire.recipient_name,
+        questionnaire.currency || "FCFA",
+        questionnaire.recipient_age_range,
+        fcfaRate
       );
     }
   }

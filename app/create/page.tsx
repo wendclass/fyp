@@ -3,11 +3,23 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import { Gift, ArrowRight, ArrowLeft, Sparkles, Check, User } from "lucide-react";
+import {
+  Gift,
+  ArrowRight,
+  ArrowLeft,
+  Sparkles,
+  Check,
+  User,
+  Globe,
+  Calendar,
+  DollarSign,
+  Coins,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { createClient } from "@/lib/supabase/client";
 import { slugifyRecipient, formatFCFA } from "@/lib/utils";
+import { AgeRangeType } from "@/lib/types";
 
 const OCCASIONS = [
   { id: "Anniversaire", title: "Anniversaire", icon: "🎂", desc: "Pour fêter un an de plus comme il se doit" },
@@ -18,17 +30,46 @@ const OCCASIONS = [
   { id: "Autre", title: "Autre occasion", icon: "✨", desc: "Une surprise spontanée sans raison particulière" },
 ];
 
-const BUDGET_PRESETS = [
+const AGE_RANGES: { id: AgeRangeType; label: string; desc: string; icon: string }[] = [
+  { id: "13-17", label: "13 - 17 ans", desc: "Adolescent(e)", icon: "🎒" },
+  { id: "18-24", label: "18 - 24 ans", desc: "Jeune adulte / Étudiant(e)", icon: "🎓" },
+  { id: "25-34", label: "25 - 34 ans", desc: "Jeune actif / Adulte", icon: "💼" },
+  { id: "35+", label: "35 ans et +", desc: "Adulte établi / Senior", icon: "🌟" },
+];
+
+const FCFA_COUNTRIES = [
+  "Bénin",
+  "Burkina Faso",
+  "Côte d’Ivoire",
+  "Guinée-Bissau",
+  "Mali",
+  "Niger",
+  "Sénégal",
+  "Togo",
+];
+
+const BUDGET_PRESETS_FCFA = [
   { value: "5000", label: "5 000 FCFA", desc: "Petite attention délicate" },
   { value: "10000", label: "10 000 FCFA", desc: "Joli cadeau sympa" },
   { value: "25000", label: "25 000 FCFA", desc: "Superbe cadeau marquant" },
   { value: "50000", label: "50 000 FCFA", desc: "Cadeau d’exception et prestige" },
 ];
 
+const BUDGET_PRESETS_USD = [
+  { value: "10", label: "10 $", desc: "Petite attention délicate (~5 000 FCFA)" },
+  { value: "20", label: "20 $", desc: "Joli cadeau sympa (~10 000 FCFA)" },
+  { value: "45", label: "45 $", desc: "Superbe cadeau marquant (~25 000 FCFA)" },
+  { value: "90", label: "90 $", desc: "Cadeau d’exception et prestige (~50 000 FCFA)" },
+];
+
 export default function CreateSurprisePage() {
   const router = useRouter();
   const [recipientName, setRecipientName] = useState("");
   const [occasion, setOccasion] = useState("Anniversaire");
+  const [ageRange, setAgeRange] = useState<AgeRangeType>("25-34");
+  const [country, setCountry] = useState<string>("");
+
+  const [currency, setCurrency] = useState<"FCFA" | "USD">("FCFA");
   const [budgetType, setBudgetType] = useState<"preset" | "custom">("preset");
   const [budgetPreset, setBudgetPreset] = useState("25000");
   const [customBudget, setCustomBudget] = useState("");
@@ -41,22 +82,70 @@ export default function CreateSurprisePage() {
 
   const supabase = createClient();
 
+  // Geolocation & Timezone auto-detection on mount
   useEffect(() => {
-    async function checkAuth() {
+    async function checkAuthAndLocation() {
       const {
         data: { session },
       } = await supabase.auth.getSession();
       setUser(session?.user ?? null);
       setCheckingAuth(false);
+
+      try {
+        const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone || "";
+        if (timeZone.includes("Ouagadougou")) setCountry("Burkina Faso");
+        else if (timeZone.includes("Abidjan")) setCountry("Côte d’Ivoire");
+        else if (timeZone.includes("Dakar")) setCountry("Sénégal");
+        else if (timeZone.includes("Bamako")) setCountry("Mali");
+        else if (timeZone.includes("Niamey")) setCountry("Niger");
+        else if (timeZone.includes("Lome")) setCountry("Togo");
+        else if (timeZone.includes("Porto-Novo") || timeZone.includes("Cotonou")) setCountry("Bénin");
+        else if (timeZone.includes("Bissau")) setCountry("Guinée-Bissau");
+        else {
+          // Attempt browser geolocation if available
+          if ("geolocation" in navigator) {
+            navigator.geolocation.getCurrentPosition(
+              () => {
+                // If granted but country unknown, keep FCFA default
+                setCurrency("FCFA");
+              },
+              () => {
+                // If refused, switch to USD as requested
+                setCurrency("USD");
+                setBudgetPreset("45");
+              }
+            );
+          }
+        }
+      } catch (e) {
+        // fallback
+      }
     }
-    checkAuth();
+    checkAuthAndLocation();
   }, [supabase]);
+
+  // Sync preset default when currency changes
+  const handleCurrencyChange = (newCurr: "FCFA" | "USD") => {
+    setCurrency(newCurr);
+    setBudgetType("preset");
+    if (newCurr === "FCFA") {
+      setBudgetPreset("25000");
+    } else {
+      setBudgetPreset("45");
+    }
+  };
 
   const effectiveBudget = budgetType === "preset" ? budgetPreset : customBudget;
 
   const handleCreate = async () => {
     if (!recipientName.trim()) {
       setErrorMsg("Veuillez renseigner le prénom du bénéficiaire.");
+      setStep(1);
+      return;
+    }
+
+    if (!country) {
+      setErrorMsg("Veuillez sélectionner le pays du bénéficiaire.");
       setStep(1);
       return;
     }
@@ -78,13 +167,21 @@ export default function CreateSurprisePage() {
       const share_token = slugifyRecipient(recipientName);
       const title = `Surprise pour ${recipientName.trim()} (${occasion})`;
 
+      const formattedBudget =
+        currency === "USD"
+          ? `${effectiveBudget.replace(/\$/g, "")} $`
+          : effectiveBudget;
+
       const { data, error } = await supabase
         .from("questionnaires")
         .insert({
           owner_id: user.id,
           recipient_name: recipientName.trim(),
           occasion,
-          budget: effectiveBudget,
+          budget: formattedBudget,
+          currency,
+          recipient_age_range: ageRange,
+          recipient_country: country,
           title,
           status: "sent",
           share_token,
@@ -123,17 +220,17 @@ export default function CreateSurprisePage() {
           Préparer une surprise 🎁
         </h1>
         <p className="text-charcoal-light text-base sm:text-lg mt-2">
-          Renseignez le prénom, l’occasion et votre budget pour générer le lien secret.
+          Renseignez les détails pour générer le lien secret sans rien dévoiler au bénéficiaire.
         </p>
       </div>
 
       {errorMsg && (
-        <div className="max-w-xl mx-auto p-4 mb-6 rounded-2xl bg-rose-50 border border-rose-200 text-rose-600 text-sm font-medium text-center">
+        <div className="max-w-2xl mx-auto p-4 mb-6 rounded-2xl bg-rose-50 border border-rose-200 text-rose-600 text-sm font-medium text-center">
           {errorMsg}
         </div>
       )}
 
-      {/* STEP 1: Prénom et Occasion */}
+      {/* STEP 1: Profil du bénéficiaire & Occasion */}
       {step === 1 && (
         <motion.div
           initial={{ opacity: 0, y: 15 }}
@@ -158,6 +255,84 @@ export default function CreateSurprisePage() {
                 onChange={(e) => setRecipientName(e.target.value)}
                 className="pl-12 text-lg font-semibold"
               />
+            </div>
+          </div>
+
+          {/* Card Tranche d’âge & Pays */}
+          <div className="bg-white rounded-4xl p-6 sm:p-8 border border-blush-200 shadow-soft-xl max-w-2xl mx-auto space-y-6">
+            {/* Tranche d’âge */}
+            <div>
+              <div className="flex items-center gap-2 mb-2">
+                <Calendar className="w-5 h-5 text-fuchsia-brand" />
+                <label className="font-display font-bold text-lg text-charcoal">
+                  Tranche d’âge du bénéficiaire
+                </label>
+              </div>
+              <p className="text-xs text-charcoal-light mb-4">
+                Permet d’écarter les cadeaux inadaptés à son âge.
+              </p>
+
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                {AGE_RANGES.map((ar) => {
+                  const isSelected = ageRange === ar.id;
+                  return (
+                    <button
+                      key={ar.id}
+                      type="button"
+                      onClick={() => setAgeRange(ar.id)}
+                      className={`flex flex-col items-center justify-center p-4 rounded-2xl border-2 text-center transition-all ${
+                        isSelected
+                          ? "border-fuchsia-brand bg-blush-50 ring-2 ring-fuchsia-brand/20 shadow-pink-sm scale-[1.02]"
+                          : "border-blush-200 bg-white hover:border-blush-300 hover:bg-blush-50/40"
+                      }`}
+                    >
+                      <span className="text-2xl mb-1">{ar.icon}</span>
+                      <span className="font-display font-bold text-sm text-charcoal">
+                        {ar.label}
+                      </span>
+                      <span className="text-[10px] text-charcoal-muted leading-tight mt-0.5">
+                        {ar.desc}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            <hr className="border-blush-100" />
+
+            {/* Pays du bénéficiaire (Zone FCFA) */}
+            <div>
+              <div className="flex items-center gap-2 mb-2">
+                <Globe className="w-5 h-5 text-fuchsia-brand" />
+                <label className="font-display font-bold text-lg text-charcoal">
+                  Pays du bénéficiaire (Zone FCFA)
+                </label>
+              </div>
+              <p className="text-xs text-charcoal-light mb-3">
+                Sélectionnez le pays de résidence de votre proche.
+              </p>
+
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+                {FCFA_COUNTRIES.map((c) => {
+                  const isSelected = country === c;
+                  return (
+                    <button
+                      key={c}
+                      type="button"
+                      onClick={() => setCountry(c)}
+                      className={`flex items-center justify-between px-3 py-2.5 rounded-xl border-2 text-xs font-semibold transition-all ${
+                        isSelected
+                          ? "border-fuchsia-brand bg-blush-50 text-fuchsia-brand shadow-sm font-bold"
+                          : "border-blush-200 bg-white text-charcoal hover:border-blush-300"
+                      }`}
+                    >
+                      <span>{c}</span>
+                      {isSelected && <Check className="w-3.5 h-3.5 text-fuchsia-brand" />}
+                    </button>
+                  );
+                })}
+              </div>
             </div>
           </div>
 
@@ -208,6 +383,10 @@ export default function CreateSurprisePage() {
                   setErrorMsg("Veuillez saisir le prénom de votre proche.");
                   return;
                 }
+                if (!country) {
+                  setErrorMsg("Veuillez sélectionner le pays du bénéficiaire.");
+                  return;
+                }
                 setErrorMsg(null);
                 setStep(2);
               }}
@@ -220,7 +399,7 @@ export default function CreateSurprisePage() {
         </motion.div>
       )}
 
-      {/* STEP 2: Budget et Validation */}
+      {/* STEP 2: Budget, Devise & Validation */}
       {step === 2 && (
         <motion.div
           initial={{ opacity: 0, y: 15 }}
@@ -228,21 +407,51 @@ export default function CreateSurprisePage() {
           className="space-y-8 max-w-2xl mx-auto"
         >
           <div className="bg-white rounded-4xl p-6 sm:p-8 border border-blush-200 shadow-soft-xl">
-            <div className="mb-6">
-              <span className="text-xs font-bold text-fuchsia-brand uppercase tracking-wider mb-1 block">
-                Confidentialité absolue
-              </span>
-              <h2 className="font-display font-bold text-2xl text-charcoal">
-                Quel est votre budget pour {recipientName} ?
-              </h2>
-              <p className="text-xs sm:text-sm text-charcoal-light mt-1">
-                🔒 {recipientName} ne verra jamais ce montant. Il sert uniquement à filtrer les idées de cadeaux.
-              </p>
+            {/* Header with Currency Toggle */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+              <div>
+                <span className="text-xs font-bold text-fuchsia-brand uppercase tracking-wider mb-1 block">
+                  Confidentialité absolue
+                </span>
+                <h2 className="font-display font-bold text-2xl text-charcoal">
+                  Quel est votre budget pour {recipientName} ?
+                </h2>
+              </div>
+
+              {/* Devise Switch */}
+              <div className="flex items-center bg-blush-100 p-1 rounded-2xl border border-blush-200 shrink-0">
+                <button
+                  type="button"
+                  onClick={() => handleCurrencyChange("FCFA")}
+                  className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all ${
+                    currency === "FCFA"
+                      ? "bg-white text-fuchsia-brand shadow-pink-sm"
+                      : "text-charcoal-light hover:text-charcoal"
+                  }`}
+                >
+                  FCFA
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleCurrencyChange("USD")}
+                  className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all ${
+                    currency === "USD"
+                      ? "bg-white text-fuchsia-brand shadow-pink-sm"
+                      : "text-charcoal-light hover:text-charcoal"
+                  }`}
+                >
+                  USD ($)
+                </button>
+              </div>
             </div>
 
-            {/* Presets */}
+            <p className="text-xs sm:text-sm text-charcoal-light mb-6">
+              🔒 {recipientName} ne verra jamais ce montant. Il sert uniquement à filtrer les idées de cadeaux.
+            </p>
+
+            {/* Presets (FCFA or USD) */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6">
-              {BUDGET_PRESETS.map((preset) => {
+              {(currency === "FCFA" ? BUDGET_PRESETS_FCFA : BUDGET_PRESETS_USD).map((preset) => {
                 const isSelected = budgetType === "preset" && budgetPreset === preset.value;
                 return (
                   <button
@@ -271,7 +480,7 @@ export default function CreateSurprisePage() {
                           : "border-blush-300"
                       }`}
                     >
-                      {isSelected && <Check className="w-3 h-3" />}
+                      {isSelected && <Check className="w-3.5 h-3.5" />}
                     </div>
                   </button>
                 );
@@ -288,20 +497,20 @@ export default function CreateSurprisePage() {
                   onChange={() => setBudgetType("custom")}
                   className="accent-fuchsia-brand w-4 h-4"
                 />
-                <span>Montant personnalisé (FCFA)</span>
+                <span>Montant personnalisé ({currency})</span>
               </label>
 
               {budgetType === "custom" && (
                 <div className="mt-3">
                   <Input
                     type="number"
-                    placeholder="Ex : 35000"
+                    placeholder={currency === "FCFA" ? "Ex : 35000" : "Ex : 60"}
                     value={customBudget}
                     onChange={(e) => setCustomBudget(e.target.value)}
                     className="text-lg font-bold"
                   />
                   <span className="text-xs text-charcoal-muted mt-1 block">
-                    Montant en Francs CFA
+                    Montant en {currency === "FCFA" ? "Francs CFA" : "Dollars américains ($)"}
                   </span>
                 </div>
               )}
@@ -316,9 +525,11 @@ export default function CreateSurprisePage() {
             </div>
             <div className="grid grid-cols-2 gap-2 text-xs text-charcoal-light">
               <div>Bénéficiaire : <strong className="text-charcoal">{recipientName}</strong></div>
+              <div>Âge : <strong className="text-charcoal">{ageRange} ans</strong></div>
+              <div>Pays : <strong className="text-charcoal">{country}</strong></div>
               <div>Occasion : <strong className="text-charcoal">{occasion}</strong></div>
-              <div>Budget défini : <strong className="text-fuchsia-brand">{formatFCFA(effectiveBudget)}</strong></div>
-              <div>Lien généré : <strong className="text-charcoal">fyp.app/{recipientName.toLowerCase()}-...</strong></div>
+              <div>Budget : <strong className="text-fuchsia-brand">{currency === "USD" ? `${effectiveBudget} $` : formatFCFA(effectiveBudget)}</strong></div>
+              <div>Lien secret : <strong className="text-charcoal">fyp.app/{recipientName.toLowerCase()}-...</strong></div>
             </div>
           </div>
 

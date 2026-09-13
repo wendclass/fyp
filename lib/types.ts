@@ -1,10 +1,12 @@
-export type OccasionType = 
+export type OccasionType =
   | "Anniversaire"
   | "Amour / couple"
   | "Réussite"
   | "Remerciement"
   | "Félicitations"
   | "Autre";
+
+export type AgeRangeType = "13-17" | "18-24" | "25-34" | "35+";
 
 export type QuestionnaireStatus = "draft" | "sent" | "answered" | "completed";
 
@@ -13,6 +15,9 @@ export interface Questionnaire {
   owner_id: string;
   recipient_name: string;
   budget: string;
+  currency?: "FCFA" | "USD" | string;
+  recipient_age_range?: AgeRangeType | string;
+  recipient_country?: string;
   occasion?: string;
   title: string;
   status: QuestionnaireStatus;
@@ -36,6 +41,7 @@ export interface AnswersRecord {
   q1_pleasure: string;
   q2_likes: string[];
   q3_dislikes: string[];
+  q4_hedonic_utilitarian?: "Utile" | "Fun" | "Les deux" | string;
   created_at: string;
 }
 
@@ -47,9 +53,11 @@ export interface Gift {
   categories: string[];
   excluded_categories: string[];
   gift_type: "wear" | "use" | "eat" | "experience" | "surprise" | string;
+  hedonic_utilitarian: "Utile" | "Fun" | "Les deux";
+  age_min: number;
+  age_max: number;
   description: string;
   image_url?: string;
-  estimated_price?: string;
 }
 
 export interface ScoredGift {
@@ -71,4 +79,11 @@ export interface RecipientSubmission {
   q1_pleasure: string;
   q2_likes: string[];
   q3_dislikes: string[];
+  q4_hedonic_utilitarian?: string;
+}
+
+export interface ExchangeRate {
+  id: number;
+  fcfa_per_usd: number;
+  updated_at: string;
 }
