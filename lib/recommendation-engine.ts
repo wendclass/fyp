@@ -8,16 +8,16 @@ export const USD_PRESET_TO_FCFA: Record<string, number> = {
   "90": 50000,
 };
 
-// Mapping between Q1 user choices and internal gift_type
+// Mapping between Q1 user choices and internal gift_type / tags
 const Q1_MAPPING: Record<string, string[]> = {
-  "Quelque chose à porter": ["wear", "mode", "vêtements", "bijoux", "accessoires"],
-  "Quelque chose à utiliser": ["use", "technologie", "cuisine", "sport", "décoration", "beauté", "livres"],
-  "Quelque chose à manger": ["eat", "nourriture", "cuisine", "gourmandise", "chocolat"],
-  "Une expérience": ["experience", "voyage", "atelier", "bien-être", "détente", "spectacle"],
-  "Une surprise": ["surprise", "wear", "use", "eat", "experience", "jeux"],
+  "Quelque chose à porter": ["wear", "mode", "vetements", "bijoux", "accessoires", "a porter", "porter"],
+  "Quelque chose à utiliser": ["use", "technologie", "cuisine", "sport", "decoration", "beaute", "livres", "a utiliser", "utiliser"],
+  "Quelque chose à manger": ["eat", "nourriture", "cuisine", "gourmandise", "chocolat", "a manger", "manger"],
+  "Une expérience": ["experience", "voyage", "atelier", "bien-etre", "detente", "spectacle", "une experience"],
+  "Une surprise": ["surprise", "wear", "use", "eat", "experience", "jeux", "a porter", "a utiliser", "a manger"],
 };
 
-// Normalized category matcher
+// Normalized category matcher (strips accents and lowercases)
 function normalize(str: string): string {
   return str
     .toLowerCase()
@@ -92,8 +92,8 @@ export function generateRecommendations(
   // Helper: check if a gift has any category in disliked list
   const isExcludedByDislikes = (gift: Gift): boolean => {
     const allGiftExcluded = [
-      ...gift.excluded_categories.map(normalize),
-      ...gift.categories.map(normalize),
+      ...(gift.excluded_categories || []).map(normalize),
+      ...(gift.categories || []).map(normalize),
     ];
     return q3Dislikes.some((disliked) =>
       allGiftExcluded.some((cat) => cat.includes(disliked) || disliked.includes(cat))
@@ -111,11 +111,11 @@ export function generateRecommendations(
     const reasons: string[] = [];
 
     // 1. Q1 Pleasure match (+1)
-    const q1Matches = Q1_MAPPING[q1] || [];
+    const q1Matches = (Q1_MAPPING[q1] || []).map(normalize);
     const giftTypeNorm = normalize(gift.gift_type || "");
     const hasQ1Match =
       q1Matches.includes(giftTypeNorm) ||
-      gift.categories.some((c) => q1Matches.includes(normalize(c)));
+      (gift.categories || []).some((c) => q1Matches.includes(normalize(c)));
 
     if (hasQ1Match) {
       score += 1.0;
@@ -134,7 +134,7 @@ export function generateRecommendations(
 
     // 2. Q2 Likes (Categories in common, +1 per category, max 3)
     const matchingCategories: string[] = [];
-    gift.categories.forEach((cat) => {
+    (gift.categories || []).forEach((cat) => {
       const catNorm = normalize(cat);
       if (q2Likes.some((liked) => liked.includes(catNorm) || catNorm.includes(liked))) {
         score += 1.0;
