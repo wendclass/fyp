@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ScoredGift, Questionnaire } from "@/lib/types";
 import { Button } from "./ui/button";
@@ -9,6 +9,7 @@ import { Gift as GiftIcon, CheckCircle2, Heart, Sparkles, Send, Check } from "lu
 import confetti from "canvas-confetti";
 import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
+import { trackEvent } from "@/lib/tracker";
 
 interface RecommendationsRevealProps {
   questionnaire: Questionnaire;
@@ -32,8 +33,24 @@ export function RecommendationsReveal({
 
   const supabase = createClient();
 
+  useEffect(() => {
+    trackEvent("recommandations_consultees", {
+      questionnaire_id: questionnaire.id,
+      recipient_name: questionnaire.recipient_name,
+      recommendations_count: recommendations.length,
+      recommendation_names: recommendations.map((r) => r.gift.name),
+    });
+  }, [questionnaire.id, questionnaire.recipient_name, recommendations]);
+
   const handleSelect = (giftId: string) => {
     setSelectedGiftId(giftId);
+    const chosen = recommendations.find((r) => r.gift.id === giftId);
+    trackEvent("cadeau_selectionne", {
+      questionnaire_id: questionnaire.id,
+      gift_id: giftId,
+      gift_name: chosen?.gift.name,
+      gift_type: chosen?.gift.gift_type,
+    });
   };
 
   const handleFinalize = async () => {
@@ -53,6 +70,14 @@ export function RecommendationsReveal({
       if (error) throw error;
 
       setIsSaved(true);
+
+      const chosen = recommendations.find((r) => r.gift.id === selectedGiftId);
+      trackEvent("cadeau_valide", {
+        questionnaire_id: questionnaire.id,
+        gift_id: selectedGiftId,
+        gift_name: chosen?.gift.name,
+        has_personal_note: personalNote.trim().length > 0,
+      });
 
       // Trigger festive confetti celebration
       try {

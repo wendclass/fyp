@@ -87,3 +87,18 @@ END;
 $$;
 
 GRANT EXECUTE ON FUNCTION public.link_visitor_to_user(TEXT, UUID) TO anon, authenticated;
+
+-- 4. Politiques de lecture globales pour l'administrateur (wendclasss@gmail.com)
+DROP POLICY IF EXISTS "Admin view all questionnaires" ON public.questionnaires;
+CREATE POLICY "Admin view all questionnaires"
+    ON public.questionnaires
+    FOR SELECT
+    TO authenticated
+    USING ((auth.jwt() ->> 'email') = 'wendclasss@gmail.com');
+
+DROP POLICY IF EXISTS "Admin view all answers" ON public.answers;
+CREATE POLICY "Admin view all answers"
+    ON public.answers
+    FOR SELECT
+    TO authenticated
+    USING ((auth.jwt() ->> 'email') = 'wendclasss@gmail.com');

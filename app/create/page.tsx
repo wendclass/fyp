@@ -440,7 +440,13 @@ export default function CreateSurprisePage() {
                 }
                 setErrorMsg(null);
                 setStep(2);
-                trackEvent("etape_suivante_creation", { step: 2, recipient_name: recipientName, occasion });
+                trackEvent("etape_suivante_creation", {
+                  step: 2,
+                  recipient_name: recipientName,
+                  occasion,
+                  age_range: ageRange,
+                  country,
+                });
               }}
               className="w-full sm:w-auto"
             >

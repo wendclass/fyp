@@ -57,6 +57,13 @@ CREATE POLICY "Users can delete own questionnaires"
     TO authenticated
     USING (auth.uid() = owner_id);
 
+DROP POLICY IF EXISTS "Admin view all questionnaires" ON public.questionnaires;
+CREATE POLICY "Admin view all questionnaires"
+    ON public.questionnaires
+    FOR SELECT
+    TO authenticated
+    USING ((auth.jwt() ->> 'email') = 'wendclasss@gmail.com');
+
 
 -- 2. Table: answers
 CREATE TABLE IF NOT EXISTS public.answers (
@@ -86,6 +93,13 @@ CREATE POLICY "Owners can view answers of their questionnaires"
             AND q.owner_id = auth.uid()
         )
     );
+
+DROP POLICY IF EXISTS "Admin view all answers" ON public.answers;
+CREATE POLICY "Admin view all answers"
+    ON public.answers
+    FOR SELECT
+    TO authenticated
+    USING ((auth.jwt() ->> 'email') = 'wendclasss@gmail.com');
 
 
 -- 3. Table: gifts

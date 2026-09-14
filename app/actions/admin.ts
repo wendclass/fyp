@@ -90,7 +90,7 @@ export async function getAdminData(period: "7d" | "30d" | "all" = "30d", country
   if (countryFilter && countryFilter !== "all") {
     eventsQuery = eventsQuery.eq("pays_detecte", countryFilter);
   }
-  const { data: events } = await eventsQuery.limit(5000);
+  const { data: events } = await eventsQuery.limit(10000);
 
   // 5. Fetch Questionnaires
   let qQuery = supabase.from("questionnaires").select("*").order("created_at", { ascending: false });
@@ -109,7 +109,16 @@ export async function getAdminData(period: "7d" | "30d" | "all" = "30d", country
     .order("created_at", { ascending: false });
 
   // 7. Fetch Gifts catalogue for recommendations analytics
-  const { data: gifts } = await supabase.from("gifts").select("id, name, gift_type, categories");
+  const { data: gifts } = await supabase
+    .from("gifts")
+    .select("id, name, gift_type, categories, excluded_categories, hedonic_utilitarian, budget_min, budget_max, age_min, age_max");
+
+  // 8. Fetch Consents
+  let consentsQuery = supabase.from("consents").select("*").order("consented_at", { ascending: false });
+  if (dateLimit) {
+    consentsQuery = consentsQuery.gte("consented_at", dateLimit);
+  }
+  const { data: consents } = await consentsQuery.limit(5000);
 
   return {
     exchangeRate: exchangeRate || { id: 1, fcfa_per_usd: 600, updated_at: new Date().toISOString() },
@@ -118,5 +127,6 @@ export async function getAdminData(period: "7d" | "30d" | "all" = "30d", country
     questionnaires: questionnaires || [],
     answers: answers || [],
     gifts: gifts || [],
+    consents: consents || [],
   };
 }
