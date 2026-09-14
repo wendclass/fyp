@@ -16,8 +16,51 @@ import {
 } from "lucide-react";
 
 export default function HomePage() {
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "Organization",
+        "@id": "https://foryou-fyp.vercel.app/#organization",
+        name: "Fyp",
+        url: "https://foryou-fyp.vercel.app",
+        logo: "https://foryou-fyp.vercel.app/icon.svg",
+        description:
+          "Plateforme de recommandation de cadeaux personnalisés basée sur un mécanisme d’aveuglement.",
+        founder: {
+          "@type": "Person",
+          name: "Scott Nana (Class S)",
+        },
+        contactPoint: {
+          "@type": "ContactPoint",
+          contactType: "customer support",
+          email: "wendclasss@gmail.com",
+          url: "https://foryou-fyp.vercel.app/support",
+        },
+      },
+      {
+        "@type": "WebSite",
+        "@id": "https://foryou-fyp.vercel.app/#website",
+        url: "https://foryou-fyp.vercel.app",
+        name: "Fyp",
+        publisher: {
+          "@id": "https://foryou-fyp.vercel.app/#organization",
+        },
+        inLanguage: "fr-FR",
+        description:
+          "Trouvez le cadeau idéal sans dévoiler votre budget. Le proche répond à 4 questions discrètes, vous choisissez parmi 3 recommandations ciblées.",
+      },
+    ],
+  };
+
   return (
     <div className="flex flex-col items-center overflow-hidden">
+      {/* Schema.org Structured Data */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
+
       {/* HERO SECTION */}
       <section className="relative w-full pt-12 pb-20 md:pt-20 md:pb-32 px-4 sm:px-6 max-w-6xl mx-auto text-center">
         {/* Subtle Decorative Elements */}
@@ -50,7 +93,7 @@ export default function HomePage() {
           transition={{ duration: 0.6, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
           className="text-base sm:text-xl text-charcoal-light max-w-2xl mx-auto leading-relaxed mb-10"
         >
-          Vous définissez votre budget, votre proche répond à 3 questions rapides sans jamais voir vos chiffres ni les idées suggérées. Vous recevez ensuite 3 recommandations sur-mesure et choisissez activement la meilleure.
+          Vous définissez votre budget, votre proche répond à 4 questions rapides sans jamais voir vos chiffres ni les idées suggérées. Vous recevez ensuite 3 recommandations sur-mesure et choisissez activement la meilleure.
         </motion.p>
 
         <motion.div
@@ -168,7 +211,7 @@ export default function HomePage() {
                 </li>
                 <li className="flex items-start gap-2.5">
                   <CheckCircle className="w-5 h-5 text-charcoal shrink-0 mt-0.5" />
-                  <span>Répond à <strong>3 questions visuelles simples</strong> en moins d’une minute.</span>
+                  <span>Répond à <strong>4 questions simples et directes</strong> en moins d’une minute.</span>
                 </li>
                 <li className="flex items-start gap-2.5">
                   <Lock className="w-5 h-5 text-rose-500 shrink-0 mt-0.5" />
@@ -209,7 +252,7 @@ export default function HomePage() {
             {
               step: "01",
               title: "Créez la surprise",
-              desc: "Choisissez l’occasion (Anniversaire, Couple, Réussite...) et définissez votre budget en FCFA.",
+              desc: "Choisissez l’occasion (Anniversaire, Couple, Réussite...) et définissez votre budget en FCFA ou USD.",
               icon: "🎁",
             },
             {
@@ -221,7 +264,7 @@ export default function HomePage() {
             {
               step: "03",
               title: "Votre proche répond",
-              desc: "3 questions ultra rapides pour cerner ce qu’il aime, préfère utiliser et souhaite éviter.",
+              desc: "4 questions discrètes pour cerner ce qu’il aime, préfère recevoir et souhaite éviter.",
               icon: "💬",
             },
             {

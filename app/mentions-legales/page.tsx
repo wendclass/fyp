@@ -4,8 +4,14 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 
 export const metadata = {
-  title: "Mentions légales, Fyp",
+  title: "Mentions légales",
   description: "Mentions légales et informations éditoriales du service Fyp.",
+  alternates: { canonical: "/mentions-legales" },
+  openGraph: {
+    title: "Mentions légales | Fyp",
+    description: "Mentions légales et informations éditoriales du service Fyp.",
+    url: "https://foryou-fyp.vercel.app/mentions-legales",
+  },
 };
 
 export default function MentionsLegalesPage() {
