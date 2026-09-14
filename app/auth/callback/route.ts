@@ -6,6 +6,8 @@ export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url);
   const code = searchParams.get("code");
   const next = searchParams.get("next") ?? "/dashboard";
+  const qid = searchParams.get("qid");
+  const fromQuiz = searchParams.get("from_quiz");
 
   if (code) {
     const cookieStore = cookies();
@@ -44,6 +46,33 @@ export async function GET(request: Request) {
           // ignore
         }
       }
+
+      // If converted from questionnaire, record in profiles
+      if (qid) {
+        try {
+          await supabase.rpc("record_converted_beneficiary", {
+            p_user_id: data.user.id,
+            p_email: data.user.email || "",
+            p_questionnaire_id: qid,
+          });
+
+          await supabase.from("events").insert({
+            visitor_id: vid || `vid_oauth_${data.user.id}`,
+            user_id: data.user.id,
+            session_id: `sid_${Date.now()}`,
+            event_name: "beneficiaire_devient_expediteur",
+            page_url: next,
+            properties: {
+              questionnaire_id: qid,
+              token: fromQuiz,
+              auth_provider: "google",
+            },
+          });
+        } catch (e) {
+          console.debug("Error recording conversion on OAuth callback", e);
+        }
+      }
+
       return NextResponse.redirect(`${origin}${next}`);
     }
   }

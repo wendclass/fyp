@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { Gift, Heart, ArrowRight, ArrowLeft, Check, Sparkles } from "lucide-react";
 import { Button } from "./ui/button";
@@ -11,6 +12,7 @@ interface BeneficiaryQuizProps {
   token: string;
   recipientName: string;
   occasion?: string;
+  questionnaireId?: string;
   alreadyAnswered?: boolean;
 }
 
@@ -87,8 +89,10 @@ export function BeneficiaryQuiz({
   token,
   recipientName,
   occasion = "un événement spécial",
+  questionnaireId,
   alreadyAnswered = false,
 }: BeneficiaryQuizProps) {
+  const router = useRouter();
   const [step, setStep] = useState<number>(0); // 0 = intro, 1 = Q1, 2 = Q2, 3 = Q3, 4 = Q4, 5 = success
   const [direction, setDirection] = useState<number>(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -107,26 +111,66 @@ export function BeneficiaryQuiz({
       token,
       recipient_name: recipientName,
       already_answered: alreadyAnswered,
+      questionnaire_id: questionnaireId || null,
     });
-  }, [token, recipientName, alreadyAnswered]);
+  }, [token, recipientName, alreadyAnswered, questionnaireId]);
+
+  const handleBecomeSender = () => {
+    if (typeof window !== "undefined") {
+      if (questionnaireId) localStorage.setItem("fyp_converted_from_qid", questionnaireId);
+      localStorage.setItem("fyp_converted_from_token", token);
+    }
+    trackEvent("beneficiaire_devient_expediteur", {
+      questionnaire_id: questionnaireId || null,
+      token,
+      recipient_name: recipientName,
+    });
+    const qidParam = questionnaireId ? `&qid=${encodeURIComponent(questionnaireId)}` : "";
+    router.push(`/auth/signup?from_quiz=${encodeURIComponent(token)}${qidParam}&redirect=/create`);
+  };
 
   if (alreadyAnswered) {
     return (
-      <div className="min-h-screen bg-blush-100 flex items-center justify-center p-4">
+      <div className="min-h-screen bg-blush-100 flex items-center justify-center p-4 sm:p-6">
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
-          className="max-w-md w-full bg-white rounded-4xl p-8 sm:p-10 text-center shadow-soft-xl border border-blush-200"
+          className="max-w-md w-full bg-white rounded-4xl p-8 sm:p-10 text-center shadow-soft-xl border border-blush-200 space-y-6"
         >
-          <div className="w-16 h-16 rounded-3xl bg-emerald-100 text-emerald-600 mx-auto flex items-center justify-center mb-6">
-            <Check className="w-8 h-8" />
+          <div>
+            <div className="w-16 h-16 rounded-3xl bg-emerald-100 text-emerald-600 mx-auto flex items-center justify-center mb-4">
+              <Check className="w-8 h-8" />
+            </div>
+            <h2 className="font-display font-extrabold text-2xl sm:text-3xl text-charcoal mb-2">
+              C’est déjà noté ❤️
+            </h2>
+            <p className="text-charcoal-light text-sm leading-relaxed">
+              Tu as déjà répondu à ce questionnaire pour {recipientName}. Tout est prêt pour ta surprise !
+            </p>
           </div>
-          <h2 className="font-display font-extrabold text-2xl sm:text-3xl text-charcoal mb-3">
-            C’est déjà noté ❤️
-          </h2>
-          <p className="text-charcoal-light text-base leading-relaxed mb-6">
-            Tu as déjà répondu à ce questionnaire pour {recipientName}. Tout est prêt pour ta surprise !
-          </p>
+
+          {/* Second temps : À ton tour */}
+          <div className="p-6 rounded-3xl bg-gradient-to-br from-blush-50 to-white border border-blush-200 text-left space-y-3">
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-fuchsia-brand/10 text-fuchsia-brand text-[11px] font-bold uppercase tracking-wider">
+              <Gift className="w-3.5 h-3.5" />
+              À ton tour
+            </div>
+            <h3 className="font-display font-bold text-lg text-charcoal">
+              À ton tour de faire plaisir à quelqu’un ?
+            </h3>
+            <p className="text-xs text-charcoal-light leading-relaxed">
+              Prépare une surprise secrète pour un proche sans jamais dévoiler ton budget.
+            </p>
+            <Button
+              onClick={handleBecomeSender}
+              variant="primary"
+              size="md"
+              className="w-full gap-2 mt-2"
+            >
+              <span>Créer une surprise pour un proche</span>
+              <ArrowRight className="w-4 h-4" />
+            </Button>
+          </div>
         </motion.div>
       </div>
     );
@@ -687,30 +731,62 @@ export function BeneficiaryQuiz({
             </motion.div>
           )}
 
-          {/* STEP 5: SUCCESS CONFIRMATION */}
+          {/* STEP 5: SUCCESS CONFIRMATION + VIRAL LOOP */}
           {step === 5 && (
             <motion.div
               key="step-5"
               initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               transition={{ type: "spring", stiffness: 350, damping: 25 }}
-              className="bg-white rounded-4xl p-8 sm:p-12 shadow-soft-xl border border-blush-200 text-center"
+              className="bg-white rounded-4xl p-6 sm:p-10 shadow-soft-xl border border-blush-200 text-center space-y-6"
             >
-              <div className="w-20 h-20 rounded-full bg-blush-100 text-fuchsia-brand mx-auto flex items-center justify-center mb-6 shadow-pink-md animate-float">
-                <Heart className="w-10 h-10 fill-fuchsia-brand text-fuchsia-brand" />
+              {/* Premier temps : Remerciement */}
+              <div>
+                <div className="w-16 h-16 rounded-3xl bg-blush-100 text-fuchsia-brand mx-auto flex items-center justify-center mb-4 shadow-pink-md animate-float">
+                  <Heart className="w-8 h-8 fill-fuchsia-brand text-fuchsia-brand" />
+                </div>
+
+                <h2 className="font-display font-black text-2xl sm:text-3xl text-charcoal mb-2 tracking-tight">
+                  C’est noté ❤️
+                </h2>
+
+                <p className="text-charcoal-light text-base sm:text-lg leading-relaxed mb-4">
+                  Merci d’avoir répondu, {recipientName} !
+                </p>
+
+                <div className="p-4 rounded-3xl bg-blush-50 border border-blush-200 text-xs sm:text-sm text-charcoal-muted leading-relaxed max-w-md mx-auto">
+                  <Sparkles className="w-4 h-4 text-fuchsia-brand inline mr-1.5" />
+                  Tes 4 réponses ont été transmises en toute discrétion. Prépare-toi à être surpris(e) !
+                </div>
               </div>
 
-              <h2 className="font-display font-black text-3xl sm:text-4xl text-charcoal mb-3 tracking-tight">
-                C’est noté ❤️
-              </h2>
+              {/* Séparateur */}
+              <div className="border-t border-blush-100 my-4" />
 
-              <p className="text-charcoal-light text-lg sm:text-xl leading-relaxed mb-6">
-                Merci d’avoir répondu, {recipientName} !
-              </p>
+              {/* Second temps : À ton tour de faire plaisir à quelqu'un ? */}
+              <div className="p-6 sm:p-7 rounded-3xl bg-gradient-to-br from-blush-50 to-white border border-blush-200 text-left space-y-3 shadow-sm">
+                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-fuchsia-brand/10 text-fuchsia-brand text-[11px] font-bold uppercase tracking-wider">
+                  <Gift className="w-3.5 h-3.5" />
+                  À ton tour
+                </div>
 
-              <div className="p-4 rounded-3xl bg-blush-50 border border-blush-200 text-sm text-charcoal-muted leading-relaxed max-w-md mx-auto">
-                <Sparkles className="w-4 h-4 text-fuchsia-brand inline mr-1.5" />
-                Tes 4 réponses ont été transmises en toute discrétion. Prépare-toi à être surpris(e) !
+                <h3 className="font-display font-black text-xl sm:text-2xl text-charcoal tracking-tight">
+                  À ton tour de faire plaisir à quelqu’un ?
+                </h3>
+
+                <p className="text-xs sm:text-sm text-charcoal-light leading-relaxed">
+                  Fais vivre la même expérience à un proche : choisis une occasion, fixe ton budget secret et envoie-lui son lien personnalisé en 30 secondes.
+                </p>
+
+                <Button
+                  onClick={handleBecomeSender}
+                  variant="primary"
+                  size="lg"
+                  className="w-full gap-2 mt-2 shadow-pink-md hover:shadow-pink-lg transition-all"
+                >
+                  <span>Créer une surprise pour un proche</span>
+                  <ArrowRight className="w-5 h-5" />
+                </Button>
               </div>
             </motion.div>
           )}

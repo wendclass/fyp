@@ -315,6 +315,32 @@ export default function AdminPage() {
       }
     });
 
+    // 3b. Converted Beneficiary -> Sender (Viral Loop)
+    const profilesList = adminData?.profiles || [];
+    const convertedProfiles = profilesList.filter((p: any) => p.converted_from_questionnaire_id);
+    const viralUserIds = new Set<string>(convertedProfiles.map((p: any) => p.id));
+
+    // Also check events for any beneficiaire_devient_expediteur
+    events
+      .filter((e: any) => e.event_name === "beneficiaire_devient_expediteur")
+      .forEach((e: any) => {
+        if (e.user_id) viralUserIds.add(e.user_id);
+      });
+
+    const viralAccountsCount = viralUserIds.size;
+    const viralSurprises = questionnaires.filter((q: any) => viralUserIds.has(q.owner_id));
+    const viralSurprisesCount = viralSurprises.length;
+    const viralCreatorsCount = new Set(viralSurprises.map((q: any) => q.owner_id)).size;
+    const viralConversionRate =
+      viralAccountsCount > 0
+        ? Math.round((viralCreatorsCount / viralAccountsCount) * 100)
+        : 0;
+
+    // Add viral channel to channelSignupsMap if > 0
+    if (viralAccountsCount > 0) {
+      channelSignupsMap["Bénéficiaire devenu expéditeur (Boucle virale)"] = viralAccountsCount;
+    }
+
     // 4. Pages Visitées (page_vue events)
     const pageViewsMap: Record<string, { totalViews: number; uniqueVisitors: Set<string> }> = {};
     events
@@ -550,8 +576,12 @@ export default function AdminPage() {
       sendersWith2,
       sendersWith3Plus,
       retentionRate,
+      viralAccountsCount,
+      viralSurprisesCount,
+      viralCreatorsCount,
+      viralConversionRate,
     };
-  }, [events, questionnaires, answers, gifts, consents, exchangeRate]);
+  }, [events, questionnaires, answers, gifts, consents, exchangeRate, adminData?.profiles]);
 
   if (loading) {
     return (
@@ -936,6 +966,68 @@ export default function AdminPage() {
       {/* ========================================================================= */}
       {activeTab === "acquisition" && (
         <div className="space-y-6">
+          {/* CARTE SPÉCIALE : BOUCLE VIRALE (Bénéficiaire -> Expéditeur) */}
+          <div className="bg-gradient-to-br from-white via-blush-50/70 to-pink-50/50 rounded-4xl p-6 sm:p-8 border-2 border-fuchsia-brand/30 shadow-soft-xl space-y-6">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 rounded-3xl bg-fuchsia-brand text-white flex items-center justify-center shadow-pink-md">
+                  <Sparkles className="w-6 h-6" />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <h3 className="font-display font-black text-xl text-charcoal">
+                      Bénéficiaires devenus expéditeurs (Boucle virale)
+                    </h3>
+                    <Badge variant="fuchsia" className="text-[10px]">
+                      Organique viral
+                    </Badge>
+                  </div>
+                  <p className="text-xs text-charcoal-muted mt-0.5">
+                    Utilisateurs ayant répondu à un questionnaire et créé leur compte directement depuis l’écran de fin.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2">
+              <div className="p-4 rounded-3xl bg-white border border-blush-200 text-center shadow-sm">
+                <span className="text-xs text-charcoal-muted font-bold block mb-1">
+                  Comptes créés via ce flux
+                </span>
+                <span className="font-display font-black text-3xl text-charcoal">
+                  {analytics.viralAccountsCount}
+                </span>
+                <span className="text-[10px] text-charcoal-muted block mt-1">
+                  Inscriptions après questionnaire
+                </span>
+              </div>
+
+              <div className="p-4 rounded-3xl bg-white border border-blush-200 text-center shadow-sm">
+                <span className="text-xs text-charcoal-muted font-bold block mb-1">
+                  Surprises créées par ces convertis
+                </span>
+                <span className="font-display font-black text-3xl text-fuchsia-brand">
+                  {analytics.viralSurprisesCount}
+                </span>
+                <span className="text-[10px] text-charcoal-muted block mt-1">
+                  {analytics.viralCreatorsCount} créateur(s) actif(s)
+                </span>
+              </div>
+
+              <div className="p-4 rounded-3xl bg-white border border-blush-200 text-center shadow-sm">
+                <span className="text-xs text-charcoal-muted font-bold block mb-1">
+                  Taux de passage à l’acte
+                </span>
+                <span className="font-display font-black text-3xl text-emerald-600">
+                  {analytics.viralConversionRate}%
+                </span>
+                <span className="text-[10px] text-emerald-700 font-semibold block mt-1">
+                  Taux de conversion en surprise
+                </span>
+              </div>
+            </div>
+          </div>
+
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Sources UTM & Referrers */}
             <div className="bg-white rounded-4xl p-6 sm:p-8 border border-blush-200 shadow-soft-xl space-y-4">

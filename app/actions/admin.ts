@@ -120,6 +120,11 @@ export async function getAdminData(period: "7d" | "30d" | "all" = "30d", country
   }
   const { data: consents } = await consentsQuery.limit(5000);
 
+  // 9. Fetch Profiles (for converted beneficiary analytics)
+  const { data: profiles } = await supabase
+    .from("profiles")
+    .select("id, email, converted_from_questionnaire_id, created_at");
+
   return {
     exchangeRate: exchangeRate || { id: 1, fcfa_per_usd: 600, updated_at: new Date().toISOString() },
     supportMessages: supportMessages || [],
@@ -128,5 +133,6 @@ export async function getAdminData(period: "7d" | "30d" | "all" = "30d", country
     answers: answers || [],
     gifts: gifts || [],
     consents: consents || [],
+    profiles: profiles || [],
   };
 }

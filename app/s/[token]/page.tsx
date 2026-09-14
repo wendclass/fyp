@@ -42,6 +42,7 @@ export default async function BeneficiaryPage({ params }: Props) {
         token={token}
         recipientName={directQ.recipient_name}
         occasion={directQ.occasion}
+        questionnaireId={directQ.id}
         alreadyAnswered={directQ.status === "answered" || directQ.status === "completed"}
       />
     );
@@ -54,6 +55,7 @@ export default async function BeneficiaryPage({ params }: Props) {
       token={token}
       recipientName={data.recipient_name}
       occasion={data.occasion}
+      questionnaireId={data.id}
       alreadyAnswered={alreadyAnswered}
     />
   );

@@ -36,7 +36,19 @@ function GoogleIcon({ className }: { className?: string }) {
 function SignUpForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const redirectPath = searchParams.get("redirect") || "/dashboard";
+
+  // Read conversion params
+  const fromQuizParam = searchParams.get("from_quiz");
+  const qidParam = searchParams.get("qid");
+  const storedQid = typeof window !== "undefined" ? localStorage.getItem("fyp_converted_from_qid") : null;
+  const storedToken = typeof window !== "undefined" ? localStorage.getItem("fyp_converted_from_token") : null;
+
+  const fromQuiz = fromQuizParam || storedToken || null;
+  const qid = qidParam || storedQid || null;
+
+  // If coming from a quiz, default destination is /create, else /dashboard
+  const redirectParam = searchParams.get("redirect");
+  const redirectPath = redirectParam || (fromQuiz || qid ? "/create" : "/dashboard");
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -52,10 +64,14 @@ function SignUpForm() {
     setErrorMsg(null);
 
     try {
+      const qidQuery = qid ? `&qid=${encodeURIComponent(qid)}` : "";
+      const fromQuizQuery = fromQuiz ? `&from_quiz=${encodeURIComponent(fromQuiz)}` : "";
+      const callbackUrl = `${window.location.origin}/auth/callback?next=${encodeURIComponent(redirectPath)}${qidQuery}${fromQuizQuery}`;
+
       const { error } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: {
-          redirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent(redirectPath)}`,
+          redirectTo: callbackUrl,
         },
       });
 
@@ -97,7 +113,32 @@ function SignUpForm() {
 
       if (data?.user) {
         await linkVisitorToUser(data.user.id);
-        trackEvent("inscription_reussie", { email });
+
+        // If converted from questionnaire, record in profiles table
+        if (qid) {
+          try {
+            await supabase.rpc("record_converted_beneficiary", {
+              p_user_id: data.user.id,
+              p_email: email,
+              p_questionnaire_id: qid,
+            });
+          } catch (e) {
+            console.debug("Error recording converted beneficiary", e);
+          }
+
+          trackEvent("beneficiaire_devient_expediteur", {
+            questionnaire_id: qid,
+            token: fromQuiz,
+            user_id: data.user.id,
+            email,
+          });
+        }
+
+        trackEvent("inscription_reussie", {
+          email,
+          source: qid ? "beneficiaire_converti" : "direct",
+          converted_from_questionnaire_id: qid || null,
+        });
       }
 
       if (data.session) {
